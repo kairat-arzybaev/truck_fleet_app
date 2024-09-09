@@ -10,6 +10,7 @@ class FirestoreServices {
         .collection('vehicles')
         .add(vehicle.toMap());
   }
+
   //  method for adding driver
   Future<void> addDriver(Driver driver) async {
     await FirebaseFirestore.instance.collection('drivers').add(driver.toMap());
@@ -46,13 +47,14 @@ class FirestoreServices {
         .doc(driverId)
         .delete();
   }
-//  method for getting documents of 'vehicle' collections 
-  Stream<QuerySnapshot<Map<String, dynamic>>> getVehicles() {
+
+//  method for getting documents of 'vehicle' collections
+  Stream<QuerySnapshot> getVehicles() {
     return FirebaseFirestore.instance.collection('vehicles').snapshots();
   }
 
-//  method for getting documents of 'driver' collections 
-  Stream<QuerySnapshot<Map<String, dynamic>>> getDrivers() {
+//  method for getting documents of 'driver' collections
+  Stream<QuerySnapshot> getDrivers() {
     return FirebaseFirestore.instance.collection('drivers').snapshots();
   }
 }

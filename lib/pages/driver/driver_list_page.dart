@@ -43,7 +43,9 @@ class _DriverListPageState extends State<DriverListPage> {
             );
           }
 
-          return ListView.builder(
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            separatorBuilder: (context, index) => const SizedBox(height: 6),
             itemCount: driverDocs.length,
             itemBuilder: (context, index) {
               var driverData = driverDocs[index].data() as Map<String, dynamic>;
@@ -52,7 +54,7 @@ class _DriverListPageState extends State<DriverListPage> {
               return ListTile(
                 title: Text('${driver.name} ${driver.surname}'),
                 subtitle: Text(driver.address),
-                trailing: const Icon(Icons.arrow_forward_ios),
+                trailing: const Icon(Icons.more_vert),
                 onTap: () {},
               );
             },

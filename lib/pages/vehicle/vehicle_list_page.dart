@@ -42,7 +42,9 @@ class _VehicleListPageState extends State<VehicleListPage> {
             );
           }
 
-          return ListView.builder(
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            separatorBuilder: (context, index) => const SizedBox(height: 6),
             itemCount: vehicleDocs.length,
             itemBuilder: (context, index) {
               var vehicleData =
@@ -51,8 +53,8 @@ class _VehicleListPageState extends State<VehicleListPage> {
 
               return ListTile(
                 title: Text('${vehicle.maker} ${vehicle.model}'),
-                subtitle: Text(vehicle.plateNumber),
-                trailing: const Icon(Icons.arrow_forward_ios),
+                subtitle: Text('${vehicle.mileage} км\n${vehicle.plateNumber}'),
+                trailing: const Icon(Icons.more_vert),
                 onTap: () {},
               );
             },
