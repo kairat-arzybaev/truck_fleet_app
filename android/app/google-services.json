@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "626108133045",
+    "project_id": "fleet-management-6099c",
+    "storage_bucket": "fleet-management-6099c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:626108133045:android:161ddcccf1320828a198fc",
+        "android_client_info": {
+          "package_name": "com.example.truck_fleet_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJGl4WHb2slqIjrVRX4NX06X92GVl3X_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
