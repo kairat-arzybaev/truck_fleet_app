@@ -3,6 +3,7 @@ import 'package:truck_fleet_app/pages/driver/driver_list_page.dart';
 import 'package:truck_fleet_app/pages/trip/trip_list_page.dart';
 
 import 'vehicle/vehicle_list_page.dart';
+import 'trailer/trailer_list_page.dart';
 import 'dashboard_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -42,6 +43,10 @@ class _HomePageState extends State<HomePage> {
                   icon: Icon(Icons.route_outlined),
                   selectedIcon: Icon(Icons.route),
                   label: 'Рейсы'),
+              NavigationDestination(
+                  icon: Icon(Icons.train_outlined),
+                  selectedIcon: Icon(Icons.train),
+                  label: 'Прицепы'),
             ],
             onDestinationSelected: (index) {
               setState(() {
@@ -53,7 +58,8 @@ class _HomePageState extends State<HomePage> {
         const DashboardPage(),
         const VehicleListPage(),
         const DriverListPage(),
-        const TripListPage()
+        const TripListPage(),
+        const TrailerListPage(),
       ][currentPageIndex],
     );
   }

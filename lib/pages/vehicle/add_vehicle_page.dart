@@ -113,6 +113,9 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       Vehicle vehicle = Vehicle(
+                        id: '',
+                        createdAt: DateTime.now(),
+                        updatedAt: DateTime.now(),
                         maker: _makerController.text,
                         model: _modelController.text,
                         plateNumber: _plateNumberController.text,

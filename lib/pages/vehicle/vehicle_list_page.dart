@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../services/firestore_services.dart';
 import 'add_vehicle_page.dart';
@@ -20,7 +19,7 @@ class _VehicleListPageState extends State<VehicleListPage> {
       appBar: AppBar(
         title: const Text('Список фур'),
       ),
-      body: StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<List<Vehicle>>(
         stream: _firestoreServices.getVehicles(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -34,9 +33,9 @@ class _VehicleListPageState extends State<VehicleListPage> {
             );
           }
 
-          final vehicleDocs = snapshot.data!.docs;
+          final vehicles = snapshot.data!;
 
-          if (vehicleDocs.isEmpty) {
+          if (vehicles.isEmpty) {
             return const Center(
               child: Text('Нет добавленных фур'),
             );
@@ -45,19 +44,8 @@ class _VehicleListPageState extends State<VehicleListPage> {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             separatorBuilder: (context, index) => const SizedBox(height: 6),
-            itemCount: vehicleDocs.length,
-            itemBuilder: (context, index) {
-              var vehicleData =
-                  vehicleDocs[index].data() as Map<String, dynamic>;
-              Vehicle vehicle = Vehicle.fromMap(vehicleData);
-
-              return ListTile(
-                title: Text('${vehicle.maker} ${vehicle.model}'),
-                subtitle: Text('${vehicle.mileage} км\n${vehicle.plateNumber}'),
-                trailing: const Icon(Icons.more_vert),
-                onTap: () {},
-              );
-            },
+            itemCount: vehicles.length,
+            itemBuilder: (context, index) => _buildVehicleTile(vehicles[index]),
           );
         },
       ),
@@ -69,6 +57,15 @@ class _VehicleListPageState extends State<VehicleListPage> {
               MaterialPageRoute(builder: (context) => const AddVehiclePage()));
         },
       ),
+    );
+  }
+
+  Widget _buildVehicleTile(Vehicle vehicle) {
+    return ListTile(
+      title: Text('${vehicle.maker} ${vehicle.model}'),
+      subtitle: Text('${vehicle.mileage} км\n${vehicle.plateNumber}'),
+      trailing: const Icon(Icons.more_vert),
+      onTap: () {},
     );
   }
 }

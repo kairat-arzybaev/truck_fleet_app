@@ -19,14 +19,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFAB03EE)),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0355EE)),
           inputDecorationTheme: const InputDecorationTheme(
               border: OutlineInputBorder(),
               isDense: true,
               contentPadding: EdgeInsets.all(10)),
           listTileTheme: ListTileThemeData(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                ),
           )),
       home: const HomePage(),
     );

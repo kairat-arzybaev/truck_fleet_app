@@ -54,19 +54,34 @@ class _AddDriverPageState extends State<AddDriverPage> {
     }
   }
 
-  void _saveDriver(Driver driver) {
-    try {
-      _firestoreServices.addDriver(driver);
-      _clearForm();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Водитель добавлен успешно')),
+  Future<void> _addDriver() async {
+    if (_formKey.currentState!.validate()) {
+      Driver driver = Driver(
+        id: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        name: _nameController.text,
+        surname: _surnameController.text,
+        birthDate: DateTime.parse(_birthDate!.toString()),
+        address: _addressController.text,
+        phoneNumber: _phoneNumberController.text,
+        idNumber: _idNumberController.text,
+        drivingLicenseNumber: _drivingLicenseNumberController.text,
+        expirationDate: DateTime.parse(_expirationDate!.toString()),
       );
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка добавления водителя: $e')),
-      );
+      try {
+        _firestoreServices.addDriver(driver);
+        _clearForm();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Водитель добавлен успешно')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка добавления водителя: $e')),
+        );
+      }
     }
   }
 
@@ -190,23 +205,7 @@ class _AddDriverPageState extends State<AddDriverPage> {
                 ),
                 AppConst.mediumSpace,
                 CustomFilledButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Driver driver = Driver(
-                        name: _nameController.text,
-                        surname: _surnameController.text,
-                        birthDate: DateTime.parse(_birthDate!.toString()),
-                        address: _addressController.text,
-                        phoneNumber: _phoneNumberController.text,
-                        idNumber: _idNumberController.text,
-                        drivingLicenseNumber:
-                            _drivingLicenseNumberController.text,
-                        expirationDate:
-                            DateTime.parse(_expirationDate!.toString()),
-                      );
-                      _saveDriver(driver);
-                    }
-                  },
+                  onPressed: _addDriver,
                   title: 'СОХРАНИТЬ',
                 ),
               ],

@@ -1,8 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/driver.dart';
-import '../../services/firestore_services.dart';
+import '/models/driver.dart';
+import '/services/firestore_services.dart';
 import 'add_driver_page.dart';
 
 class DriverListPage extends StatefulWidget {
@@ -21,7 +20,7 @@ class _DriverListPageState extends State<DriverListPage> {
       appBar: AppBar(
         title: const Text('Список водителей'),
       ),
-      body: StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<List<Driver>>(
         stream: _firestoreServices.getDrivers(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -35,9 +34,9 @@ class _DriverListPageState extends State<DriverListPage> {
             );
           }
 
-          final driverDocs = snapshot.data!.docs;
+          final drivers = snapshot.data!;
 
-          if (driverDocs.isEmpty) {
+          if (drivers.isEmpty) {
             return const Center(
               child: Text('Нет добавленных фур'),
             );
@@ -46,18 +45,8 @@ class _DriverListPageState extends State<DriverListPage> {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             separatorBuilder: (context, index) => const SizedBox(height: 6),
-            itemCount: driverDocs.length,
-            itemBuilder: (context, index) {
-              var driverData = driverDocs[index].data() as Map<String, dynamic>;
-              Driver driver = Driver.fromMap(driverData);
-
-              return ListTile(
-                title: Text('${driver.name} ${driver.surname}'),
-                subtitle: Text(driver.address),
-                trailing: const Icon(Icons.more_vert),
-                onTap: () {},
-              );
-            },
+            itemCount: drivers.length,
+            itemBuilder: (context, index) => _buildDriverTile(drivers[index]),
           );
         },
       ),
@@ -69,6 +58,15 @@ class _DriverListPageState extends State<DriverListPage> {
               MaterialPageRoute(builder: (context) => const AddDriverPage()));
         },
       ),
+    );
+  }
+
+  Widget _buildDriverTile(Driver driver) {
+    return ListTile(
+      title: Text('${driver.name} ${driver.surname}'),
+      subtitle: Text(driver.address),
+      trailing: const Icon(Icons.more_vert),
+      onTap: () {},
     );
   }
 }
