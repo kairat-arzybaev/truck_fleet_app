@@ -1,18 +1,45 @@
 import 'package:flutter/material.dart';
-
+import '../../app_const.dart';
 import '/models/driver.dart';
 import '/services/firestore_services.dart';
 import 'add_driver_page.dart';
+import 'driver_details_page.dart';
 
-class DriverListPage extends StatefulWidget {
-  const DriverListPage({super.key});
+class DriverListPage extends StatelessWidget {
+  DriverListPage({super.key});
 
-  @override
-  State<DriverListPage> createState() => _DriverListPageState();
-}
-
-class _DriverListPageState extends State<DriverListPage> {
   final FirestoreServices _firestoreServices = FirestoreServices();
+
+  Widget _buildDriverList(List<Driver> drivers) {
+    if (drivers.isEmpty) {
+      return const Center(
+        child: Text('Нет водителей'),
+      );
+    } else {
+      return ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        separatorBuilder: (context, index) => AppConst.smallSpace,
+        itemCount: drivers.length,
+        itemBuilder: (context, index) {
+          final driver = drivers[index];
+          return ListTile(
+            title: Text('${driver.name} ${driver.surname}'),
+            subtitle: Text('Телефон: ${driver.phoneNumber}'),
+            trailing: const Icon(Icons.chevron_right),
+            tileColor: Colors.blue.shade700,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DriverDetailsPage(driver: driver),
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,50 +50,29 @@ class _DriverListPageState extends State<DriverListPage> {
       body: StreamBuilder<List<Driver>>(
         stream: _firestoreServices.getDrivers(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text('Ошибка при загрузке данных'),
-            );
-          }
           if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
             return const Center(
-              child: CircularProgressIndicator(),
+              child: Text('Произошла ошибка при загрузке водителей.'),
             );
+          } else if (snapshot.hasData) {
+            return _buildDriverList(snapshot.data!);
+          } else {
+            return const Center(child: Text('Не удалось загрузить водителей'));
           }
-
-          final drivers = snapshot.data!;
-
-          if (drivers.isEmpty) {
-            return const Center(
-              child: Text('Нет добавленных фур'),
-            );
-          }
-
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            separatorBuilder: (context, index) => const SizedBox(height: 6),
-            itemCount: drivers.length,
-            itemBuilder: (context, index) => _buildDriverTile(drivers[index]),
-          );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.add),
-        label: const Text('Водитeль'),
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const AddDriverPage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddDriverPage()),
+          );
         },
+        icon: const Icon(Icons.add),
+        label: const Text('Водитель'),
       ),
-    );
-  }
-
-  Widget _buildDriverTile(Driver driver) {
-    return ListTile(
-      title: Text('${driver.name} ${driver.surname}'),
-      subtitle: Text(driver.address),
-      trailing: const Icon(Icons.more_vert),
-      onTap: () {},
     );
   }
 }

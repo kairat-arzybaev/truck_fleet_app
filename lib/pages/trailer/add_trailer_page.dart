@@ -1,11 +1,9 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:truck_fleet_app/widgets/image_picker_widget.dart';
-
+import '/widgets/image_picker_widget.dart';
 import '/services/image_services.dart';
 import '/widgets/custom_textformfield.dart';
 import '/models/trailer.dart';
@@ -27,6 +25,8 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
 
   final TextEditingController _makerController = TextEditingController();
   final TextEditingController _modelController = TextEditingController();
+  final TextEditingController _yearManufacteredController =
+      TextEditingController();
   final TextEditingController _plateNumberController = TextEditingController();
   final TextEditingController _vinController = TextEditingController();
 
@@ -57,7 +57,7 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
 
       await _firestoreServices.updateTrailerImages(trailerId, imageUrls);
     } catch (e) {
-      print('Error uploading images: $e');
+      debugPrint('Error uploading images: $e');
     }
   }
 
@@ -67,14 +67,13 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
         _isLoading = true;
       });
       try {
-        final trailerId =
-            FirebaseFirestore.instance.collection('trailers').doc().id;
         final trailer = Trailer(
-          id: trailerId,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          id: FirebaseFirestore.instance.collection('trailers').doc().id,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
           maker: _makerController.text.trim(),
           model: _modelController.text.trim(),
+          yearManufactered: int.parse(_yearManufacteredController.text.trim()),
           plateNumber: _plateNumberController.text.trim(),
           vin: _vinController.text.trim(),
           type: _selectedTrailerType!,
@@ -86,20 +85,19 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
         _uploadImagesAndUpdateTrailer(trailer.id);
 
         if (!mounted) return;
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text(
-                  'Прицеп добавлен успешно! Изображения загружаются в фоновом режиме.')),
+            content: Text('Прицеп добавлен успешно!'),
+          ),
         );
-        Navigator.pop(context);
       } catch (e) {
-        print('Error adding trailer: $e');
+        debugPrint('Error adding trailer: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Произошла ошибка при добавлении прицепа.')),
         );
       } finally {
-        if (!mounted) return;
         setState(() {
           _isLoading = false;
         });
@@ -146,6 +144,18 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Пожалуйста, введите модель';
+                  }
+                  return null;
+                },
+              ),
+              AppConst.smallSpace,
+              CustomTextFormField(
+                controller: _yearManufacteredController,
+                labelText: 'Год выпуска',
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введите год выпуска';
                   }
                   return null;
                 },
@@ -207,6 +217,7 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
                       onPressed: _addTrailer,
                       title: 'СОХРАНИТЬ',
                     ),
+              AppConst.mediumSpace,
             ],
           ),
         ),

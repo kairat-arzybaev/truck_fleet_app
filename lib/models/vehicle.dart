@@ -1,49 +1,186 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:truck_fleet_app/models/driver.dart';
+import 'package:truck_fleet_app/models/trailer.dart';
 
 class Vehicle {
-  String id;
-  String maker;
-  String model;
-  String plateNumber;
-  int mileage;
-  String vin;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String id;
+  final String maker;
+  final String model;
+  final String plateNumber;
+  final String yearManufactured;
+  final double engineCapacity;
+  final String color;
+  final int mileage;
+  final String vin;
+  final String registrationCertificateNumber;
+  final String insuranceCertificateNumber;
+  final Timestamp insuranceCertificateGivenDate;
+  final Timestamp insuranceCertificateExpiryDate; 
+  final String licenceNumber;
+  final Timestamp licenceGivenDate;
+  final Timestamp licenceExpiryDate;
+  final Timestamp inspectionGivenDate;
+  final Timestamp inspectionExpiryDate;
+  final Timestamp passGivenDate;
+  final Timestamp passExpiryDate;
+  final Trailer trailer;
+  final Driver driver;
+  final String owner;
+  final List<String> imageUrls;
+  final Timestamp createdAt;
+  final Timestamp updatedAt;
 
   Vehicle({
     required this.id,
     required this.maker,
     required this.model,
     required this.plateNumber,
+    required this.yearManufactured,
+    required this.engineCapacity,
+    required this.color,
     required this.mileage,
     required this.vin,
+    required this.registrationCertificateNumber,
+    required this.insuranceCertificateNumber,
+    required this.insuranceCertificateGivenDate,
+    required this.insuranceCertificateExpiryDate,
+    required this.licenceNumber,
+    required this.licenceGivenDate,
+    required this.licenceExpiryDate,
+    required this.inspectionGivenDate,
+    required this.inspectionExpiryDate,
+    required this.passGivenDate,
+    required this.passExpiryDate,
+    required this.trailer,
+    required this.driver,
+    required this.owner,
+    required this.imageUrls,
     required this.createdAt,
     required this.updatedAt,
   });
 
+  // Converts the Vehicle instance to a Map<String, dynamic>
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'maker': maker,
       'model': model,
       'plateNumber': plateNumber,
+      'yearManufactured': yearManufactured,
+      'engineCapacity': engineCapacity,
+      'color': color,
       'mileage': mileage,
       'vin': vin,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': Timestamp.fromDate(updatedAt),
+      'registrationCertificateNumber': registrationCertificateNumber,
+      'insuranceCertificateNumber': insuranceCertificateNumber,
+      'insuranceCertificateGivenDate': insuranceCertificateGivenDate,
+      'insuranceCertificateExpiryDate': insuranceCertificateExpiryDate,
+      'licenceNumber': licenceNumber,
+      'licenceGivenDate': licenceGivenDate,
+      'licenceExpiryDate': licenceExpiryDate,
+      'inspectionGivenDate': inspectionGivenDate,
+      'inspectionExpiryDate': inspectionExpiryDate,
+      'passGivenDate': passGivenDate,
+      'passExpiryDate': passExpiryDate,
+      'trailer': trailer.toMap(), 
+      'driver': driver.toMap(),   
+      'owner': owner,
+      'imageUrls': imageUrls,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
     };
   }
 
+  // Creates a Vehicle instance from a Map<String, dynamic>
   factory Vehicle.fromMap(Map<String, dynamic> map) {
     return Vehicle(
-      id: map['id'],
-      maker: map['maker'],
-      model: map['model'],
-      plateNumber: map['plateNumber'],
-      mileage: map['mileage'],
-      vin: map['vin'],
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
-      updatedAt: (map['updatedAt'] as Timestamp).toDate(),
+      id: map['id'] as String,
+      maker: map['maker'] as String,
+      model: map['model'] as String,
+      plateNumber: map['plateNumber'] as String,
+      yearManufactured: map['yearManufactured'] as String,
+      engineCapacity: map['engineCapacity'] is int
+          ? (map['engineCapacity'] as int).toDouble()
+          : map['engineCapacity'] as double,
+      color: map['color'] as String,
+      mileage: map['mileage'] as int,
+      vin: map['vin'] as String,
+      registrationCertificateNumber: map['registrationCertificateNumber'] as String,
+      insuranceCertificateNumber: map['insuranceCertificateNumber'] as String,
+      insuranceCertificateGivenDate: map['insuranceCertificateGivenDate'] as Timestamp,
+      insuranceCertificateExpiryDate: map['insuranceCertificateExpiryDate'] as Timestamp,
+      licenceNumber: map['licenceNumber'] as String,
+      licenceGivenDate: map['licenceGivenDate'] as Timestamp,
+      licenceExpiryDate: map['licenceExpiryDate'] as Timestamp,
+      inspectionGivenDate: map['inspectionGivenDate'] as Timestamp,
+      inspectionExpiryDate: map['inspectionExpiryDate'] as Timestamp,
+      passGivenDate: map['passGivenDate'] as Timestamp,
+      passExpiryDate: map['passExpiryDate'] as Timestamp,
+      trailer: Trailer.fromMap(map['trailer'] as Map<String, dynamic>),
+      driver: Driver.fromMap(map['driver'] as Map<String, dynamic>),
+      owner: map['owner'] as String,
+      imageUrls: List<String>.from(map['imageUrls'] ?? []),
+      createdAt: map['createdAt'] as Timestamp,
+      updatedAt: map['updatedAt'] as Timestamp,
+    );
+  }
+
+  // Creates a copy of the Vehicle with updated fields
+  Vehicle copyWith({
+    String? id,
+    String? maker,
+    String? model,
+    String? plateNumber,
+    String? yearManufactured,
+    double? engineCapacity,
+    String? color,
+    int? mileage,
+    String? vin,
+    String? registrationCertificateNumber,
+    String? insuranceCertificateNumber,
+    Timestamp? insuranceCertificateGivenDate,
+    Timestamp? insuranceCertificateExpiryDate,
+    String? licenceNumber,
+    Timestamp? licenceGivenDate,
+    Timestamp? licenceExpiryDate,
+    Timestamp? inspectionGivenDate,
+    Timestamp? inspectionExpiryDate,
+    Timestamp? passGivenDate,
+    Timestamp? passExpiryDate,
+    Trailer? trailer,
+    Driver? driver,
+    String? owner,
+    List<String>? imageUrls,
+    Timestamp? createdAt,
+    Timestamp? updatedAt,
+  }) {
+    return Vehicle(
+      id: id ?? this.id,
+      maker: maker ?? this.maker,
+      model: model ?? this.model,
+      plateNumber: plateNumber ?? this.plateNumber,
+      yearManufactured: yearManufactured ?? this.yearManufactured,
+      engineCapacity: engineCapacity ?? this.engineCapacity,
+      color: color ?? this.color,
+      mileage: mileage ?? this.mileage,
+      vin: vin ?? this.vin,
+      registrationCertificateNumber: registrationCertificateNumber ?? this.registrationCertificateNumber,
+      insuranceCertificateNumber: insuranceCertificateNumber ?? this.insuranceCertificateNumber,
+      insuranceCertificateGivenDate: insuranceCertificateGivenDate ?? this.insuranceCertificateGivenDate,
+      insuranceCertificateExpiryDate: insuranceCertificateExpiryDate ?? this.insuranceCertificateExpiryDate,
+      licenceNumber: licenceNumber ?? this.licenceNumber,
+      licenceGivenDate: licenceGivenDate ?? this.licenceGivenDate,
+      licenceExpiryDate: licenceExpiryDate ?? this.licenceExpiryDate,
+      inspectionGivenDate: inspectionGivenDate ?? this.inspectionGivenDate,
+      inspectionExpiryDate: inspectionExpiryDate ?? this.inspectionExpiryDate,
+      passGivenDate: passGivenDate ?? this.passGivenDate,
+      passExpiryDate: passExpiryDate ?? this.passExpiryDate,
+      trailer: trailer ?? this.trailer,
+      driver: driver ?? this.driver,
+      owner: owner ?? this.owner,
+      imageUrls: imageUrls ?? this.imageUrls,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

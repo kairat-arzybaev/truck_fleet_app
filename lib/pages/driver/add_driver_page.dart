@@ -1,8 +1,15 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:truck_fleet_app/app_const.dart';
-import '../../models/driver.dart';
-import '../../services/firestore_services.dart';
-import '../../widgets/custom_filled_button.dart';
+import 'package:image_picker/image_picker.dart';
+import '/models/driver.dart';
+import '/services/firestore_services.dart';
+import '/services/image_services.dart';
+import '/widgets/custom_textformfield.dart';
+import '/widgets/image_picker_widget.dart';
+import '/app_const.dart';
+import '/widgets/custom_filled_button.dart';
 
 class AddDriverPage extends StatefulWidget {
   const AddDriverPage({super.key});
@@ -12,101 +19,97 @@ class AddDriverPage extends StatefulWidget {
 }
 
 class _AddDriverPageState extends State<AddDriverPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _surnameController = TextEditingController();
-  final _ageController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
-  final _idNumberController = TextEditingController();
-  final _drivingLicenseNumberController = TextEditingController();
-  final _expirationDateController = TextEditingController();
-  DateTime? _birthDate;
-  DateTime? _expirationDate;
-
   final FirestoreServices _firestoreServices = FirestoreServices();
+  final ImageServices _imageServices = ImageServices();
+  final _formKey = GlobalKey<FormState>();
 
-  Future<void> _pickBirthDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null && picked != _birthDate) {
-      setState(() {
-        _birthDate = picked;
-      });
-    }
-  }
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _surnameController = TextEditingController();
+  final TextEditingController _patronymicController = TextEditingController();
+  final TextEditingController _idNumberController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
 
-  Future<void> _pickExpDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null && picked != _expirationDate) {
-      setState(() {
-        _expirationDate = picked;
-      });
+  List<XFile> _selectedImages = [];
+  bool _isLoading = false;
+
+  Future<void> _uploadImagesAndUpdateDriver(String driverId) async {
+    try {
+      List<String> imageUrls = [];
+
+      List<Future<String>> uploadFutures = _selectedImages.map((image) async {
+        final File compressedFile = await _imageServices.compressImage(image);
+        String imageUrl = await _imageServices.uploadImageToFirebase(
+            compressedFile, 'drivers');
+        return imageUrl;
+      }).toList();
+
+      imageUrls = await Future.wait(uploadFutures);
+
+      await _firestoreServices.updateDriverImages(driverId, imageUrls);
+    } catch (e) {
+      debugPrint('Error uploading images: $e');
     }
   }
 
   Future<void> _addDriver() async {
     if (_formKey.currentState!.validate()) {
-      Driver driver = Driver(
-        id: '',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        name: _nameController.text,
-        surname: _surnameController.text,
-        birthDate: DateTime.parse(_birthDate!.toString()),
-        address: _addressController.text,
-        phoneNumber: _phoneNumberController.text,
-        idNumber: _idNumberController.text,
-        drivingLicenseNumber: _drivingLicenseNumberController.text,
-        expirationDate: DateTime.parse(_expirationDate!.toString()),
-      );
+      setState(() {
+        _isLoading = true;
+      });
       try {
-        _firestoreServices.addDriver(driver);
-        _clearForm();
+        final driverId =
+            FirebaseFirestore.instance.collection('drivers').doc().id;
+        final driver = Driver(
+          id: driverId,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+          name: _nameController.text.trim(),
+          surname: _surnameController.text.trim(),
+          patronymic: _patronymicController.text.trim().isEmpty
+              ? null
+              : _patronymicController.text.trim(),
+          idNumber: _idNumberController.text.trim(),
+          phoneNumber: _phoneNumberController.text.trim(),
+          imageUrls: [],
+        );
+
+        await _firestoreServices.addDriver(driver);
+
+        _uploadImagesAndUpdateDriver(driver.id);
+
         if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Водитель добавлен успешно')),
+          SnackBar(
+              content: _selectedImages.isNotEmpty
+                  ? const Text(
+                      'Водитель добавлен успешно! Изображения загружаются в фоновом режиме.')
+                  : const Text('Водитель добавлен успешно!')),
         );
         Navigator.pop(context);
       } catch (e) {
+        debugPrint('Error adding driver: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка добавления водителя: $e')),
+          const SnackBar(
+              content: Text('Произошла ошибка при добавлении водителя.')),
         );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
-  }
-
-  void _clearForm() {
-    _nameController.clear();
-    _surnameController.clear();
-    _ageController.clear();
-    _addressController.clear();
-    _phoneNumberController.clear();
-    _idNumberController.clear();
-    _drivingLicenseNumberController.clear();
-    _expirationDateController.clear();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _surnameController.dispose();
-    _ageController.dispose();
-    _addressController.dispose();
-    _phoneNumberController.dispose();
+    _patronymicController.dispose();
     _idNumberController.dispose();
-    _drivingLicenseNumberController.dispose();
-    _expirationDateController.dispose();
-
+    _phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -116,100 +119,84 @@ class _AddDriverPageState extends State<AddDriverPage> {
       appBar: AppBar(
         title: const Text('Добавить водителя'),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Имя'),
-                  textCapitalization: TextCapitalization.words,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Пожалуйста, введите имя' : null,
-                ),
-                AppConst.smallSpace,
-                TextFormField(
-                  controller: _surnameController,
-                  decoration: const InputDecoration(labelText: 'Фамилия'),
-                  textCapitalization: TextCapitalization.words,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Пожалуйста, введите фамилию' : null,
-                ),
-                AppConst.smallSpace,
-                TextFormField(
-                  controller: TextEditingController(
-                    text: _birthDate != null
-                        ? '${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}'
-                        : '',
-                  ),
-                  decoration: const InputDecoration(labelText: 'Дата рождения'),
-                  readOnly: true,
-                  onTap: () => _pickBirthDate(context),
-                  validator: (value) => _birthDate == null
-                      ? 'Пожалуйста, выберите дату рождения'
-                      : null,
-                ),
-                AppConst.smallSpace,
-                TextFormField(
-                  controller: _addressController,
-                  decoration: const InputDecoration(labelText: 'Адрес'),
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Пожалуйста, введите адрес' : null,
-                ),
-                AppConst.smallSpace,
-                TextFormField(
-                  controller: _phoneNumberController,
-                  decoration:
-                      const InputDecoration(labelText: 'Номер телефона'),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) => value!.isEmpty
-                      ? 'Пожалуйста, введите номер телефона'
-                      : null,
-                ),
-                AppConst.smallSpace,
-                TextFormField(
-                  controller: _idNumberController,
-                  decoration: const InputDecoration(labelText: 'Номер ID'),
-                  textCapitalization: TextCapitalization.characters,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Пожалуйста, введите номер ID' : null,
-                ),
-                AppConst.smallSpace,
-                TextFormField(
-                  controller: _drivingLicenseNumberController,
-                  decoration: const InputDecoration(
-                      labelText: 'Номер водительского удостоверения'),
-                  textCapitalization: TextCapitalization.characters,
-                  validator: (value) => value!.isEmpty
-                      ? 'Пожалуйста, введите номер водительского удостоверения'
-                      : null,
-                ),
-                AppConst.smallSpace,
-                TextFormField(
-                  controller: TextEditingController(
-                    text: _expirationDate != null
-                        ? '${_expirationDate!.day}/${_expirationDate!.month}/${_expirationDate!.year}'
-                        : '',
-                  ),
-                  decoration: const InputDecoration(
-                      labelText: 'Дата истечения срока действия'),
-                  readOnly: true,
-                  onTap: () => _pickExpDate(context),
-                  validator: (value) => _expirationDate == null
-                      ? 'Пожалуйста, выберите дату'
-                      : null,
-                ),
-                AppConst.mediumSpace,
-                CustomFilledButton(
-                  onPressed: _addDriver,
-                  title: 'СОХРАНИТЬ',
-                ),
-              ],
-            ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: <Widget>[
+              AppConst.smallSpace,
+              CustomTextFormField(
+                controller: _surnameController,
+                labelText: 'Фамилия',
+                textCapitalization: TextCapitalization.words,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введите фамилию';
+                  }
+                  return null;
+                },
+              ),
+              AppConst.smallSpace,
+              CustomTextFormField(
+                controller: _nameController,
+                labelText: 'Имя',
+                textCapitalization: TextCapitalization.words,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введите имя';
+                  }
+                  return null;
+                },
+              ),
+              AppConst.smallSpace,
+              CustomTextFormField(
+                controller: _patronymicController,
+                labelText: 'Отчество',
+                textCapitalization: TextCapitalization.words,
+              ),
+              AppConst.smallSpace,
+              CustomTextFormField(
+                controller: _idNumberController,
+                labelText: 'Номер ID',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введите номер ID';
+                  }
+                  return null;
+                },
+              ),
+              AppConst.smallSpace,
+              CustomTextFormField(
+                controller: _phoneNumberController,
+                labelText: 'Номер телефона',
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введите номер телефона';
+                  }
+
+                  return null;
+                },
+              ),
+              AppConst.mediumSpace,
+              ImagePickerWidget(
+                onImagesSelected: (images) {
+                  setState(() {
+                    _selectedImages = images;
+                  });
+                },
+                initialImages: _selectedImages,
+              ),
+              AppConst.mediumSpace,
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : CustomFilledButton(
+                      onPressed: _addDriver,
+                      title: 'СОХРАНИТЬ',
+                    ),
+              AppConst.mediumSpace,
+            ],
           ),
         ),
       ),

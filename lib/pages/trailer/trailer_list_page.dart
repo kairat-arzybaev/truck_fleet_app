@@ -5,22 +5,10 @@ import '/services/firestore_services.dart';
 import 'add_trailer_page.dart';
 import 'trailer_details_page.dart';
 
-class TrailerListPage extends StatefulWidget {
-  const TrailerListPage({super.key});
+class TrailerListPage extends StatelessWidget {
+  TrailerListPage({super.key});
 
-  @override
-  State<TrailerListPage> createState() => _TrailerListPageState();
-}
-
-class _TrailerListPageState extends State<TrailerListPage> {
   final FirestoreServices _firestoreServices = FirestoreServices();
-
-  void _navigateToAddTrailer() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddTrailerPage()),
-    );
-  }
 
   Widget _buildTrailerList(List<Trailer> trailers) {
     if (trailers.isEmpty) {
@@ -36,10 +24,9 @@ class _TrailerListPageState extends State<TrailerListPage> {
           final trailer = trailers[index];
           return ListTile(
             title: Text('${trailer.maker} ${trailer.model}'),
-            subtitle: Text(
-                'Гос. номер: ${trailer.plateNumber}\n${trailer.type.displayName}'),
+            subtitle: Text('Гос. номер: ${trailer.plateNumber}'),
             trailing: const Icon(Icons.chevron_right),
-            tileColor: Colors.amberAccent,
+            tileColor: Colors.deepOrange,
             onTap: () {
               Navigator.push(
                 context,
@@ -66,6 +53,7 @@ class _TrailerListPageState extends State<TrailerListPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
+            debugPrint(snapshot.error.toString());
             return const Center(
               child: Text('Произошла ошибка при загрузке прицепов.'),
             );
@@ -77,7 +65,12 @@ class _TrailerListPageState extends State<TrailerListPage> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _navigateToAddTrailer,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddTrailerPage()),
+          );
+        },
         icon: const Icon(Icons.add),
         label: const Text('Прицеп'),
       ),

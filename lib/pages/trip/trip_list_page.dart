@@ -13,7 +13,9 @@ class _TripListPageState extends State<TripListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: const Text('Список рейсов'),
+      ),
       body: const Center(
         child: Text('Список рейсов'),
       ),

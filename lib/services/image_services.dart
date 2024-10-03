@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:firebase_storage/firebase_storage.dart';
@@ -15,7 +17,7 @@ class ImageServices {
       final XFile? image = await _picker.pickImage(source: source);
       return image;
     } catch (e) {
-      print('Error picking image: $e');
+      debugPrint('Error picking image: $e');
       return null;
     }
   }
@@ -25,7 +27,7 @@ class ImageServices {
       final List<XFile> images = await _picker.pickMultiImage();
       return images;
     } catch (e) {
-      print('Error picking images: $e');
+      debugPrint('Error picking images: $e');
       return null;
     }
   }
@@ -34,7 +36,7 @@ class ImageServices {
   /// Returns a [File] containing the compressed image.
   Future<File> compressImage(
     XFile imageFile, {
-    int quality = 70,
+    int quality = 50,
     int targetWidth = 900,
   }) async {
     try {
@@ -66,7 +68,26 @@ class ImageServices {
 
       return compressedFile;
     } catch (e) {
-      print('Error compressing image: $e');
+      debugPrint('Error compressing image: $e');
+      rethrow;
+    }
+  }
+
+  /// Compresses a list of image files.
+  /// Returns a list of [File] containing the compressed images.
+  Future<List<File>> compressImages(
+    List<XFile> imageFiles, {
+    int quality = 70,
+    int targetWidth = 900,
+  }) async {
+    try {
+      List<Future<File>> compressionFutures = imageFiles
+          .map((image) =>
+              compressImage(image, quality: quality, targetWidth: targetWidth))
+          .toList();
+      return await Future.wait(compressionFutures);
+    } catch (e) {
+      debugPrint('Error compressing images: $e');
       rethrow;
     }
   }
@@ -93,26 +114,7 @@ class ImageServices {
       String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
-      print('Error uploading image: $e');
-      rethrow;
-    }
-  }
-
-  /// Compresses a list of image files.
-  /// Returns a list of [File] containing the compressed images.
-  Future<List<File>> compressImages(
-    List<XFile> imageFiles, {
-    int quality = 70,
-    int targetWidth = 900,
-  }) async {
-    try {
-      List<Future<File>> compressionFutures = imageFiles
-          .map((image) =>
-              compressImage(image, quality: quality, targetWidth: targetWidth))
-          .toList();
-      return await Future.wait(compressionFutures);
-    } catch (e) {
-      print('Error compressing images: $e');
+      debugPrint('Error uploading image: $e');
       rethrow;
     }
   }
@@ -126,7 +128,7 @@ class ImageServices {
           files.map((file) => uploadImageToFirebase(file, folder)).toList();
       return await Future.wait(uploadFutures);
     } catch (e) {
-      print('Error uploading images: $e');
+      debugPrint('Error uploading images: $e');
       rethrow;
     }
   }

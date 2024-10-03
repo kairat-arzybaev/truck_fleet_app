@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:truck_fleet_app/pages/driver/driver_list_page.dart';
-import 'package:truck_fleet_app/pages/trip/trip_list_page.dart';
 
 import 'vehicle/vehicle_list_page.dart';
 import 'trailer/trailer_list_page.dart';
-import 'dashboard_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,10 +24,14 @@ class _HomePageState extends State<HomePage> {
         child: NavigationBar(
             selectedIndex: currentPageIndex,
             destinations: const [
-              NavigationDestination(
-                  icon: Icon(Icons.analytics_outlined),
-                  selectedIcon: Icon(Icons.analytics),
-                  label: 'Дашборд'),
+              // NavigationDestination(
+              //     icon: Icon(Icons.analytics_outlined),
+              //     selectedIcon: Icon(Icons.analytics),
+              //     label: 'Дашборд'),
+              // NavigationDestination(
+              //     icon: Icon(Icons.route_outlined),
+              //     selectedIcon: Icon(Icons.route),
+              //     label: 'Рейсы'),
               NavigationDestination(
                 icon: Icon(Icons.local_shipping_outlined),
                 selectedIcon: Icon(Icons.local_shipping),
@@ -39,10 +41,6 @@ class _HomePageState extends State<HomePage> {
                   icon: Icon(Icons.person_outlined),
                   selectedIcon: Icon(Icons.person),
                   label: 'Водители'),
-              NavigationDestination(
-                  icon: Icon(Icons.route_outlined),
-                  selectedIcon: Icon(Icons.route),
-                  label: 'Рейсы'),
               NavigationDestination(
                   icon: Icon(Icons.train_outlined),
                   selectedIcon: Icon(Icons.train),
@@ -55,11 +53,11 @@ class _HomePageState extends State<HomePage> {
             }),
       ),
       body: [
-        const DashboardPage(),
-        const VehicleListPage(),
-        const DriverListPage(),
-        const TripListPage(),
-        const TrailerListPage(),
+        // const DashboardPage(),
+        // const TripListPage(),
+        VehicleListPage(),
+        DriverListPage(),
+        TrailerListPage(),
       ][currentPageIndex],
     );
   }

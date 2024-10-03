@@ -1,8 +1,19 @@
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:truck_fleet_app/app_const.dart';
 import 'package:truck_fleet_app/services/firestore_services.dart';
-import '../../models/vehicle.dart';
-import '../../widgets/custom_filled_button.dart';
+import '/services/image_services.dart';
+import '/models/vehicle.dart';
+import '/widgets/date_picker_widget.dart';
+import '/models/trailer.dart';
+import '/models/driver.dart';
+import '/widgets/custom_filled_button.dart';
+import '/widgets/custom_textformfield.dart';
+import '/widgets/image_picker_widget.dart';
 
 class AddVehiclePage extends StatefulWidget {
   const AddVehiclePage({super.key});
@@ -16,47 +27,287 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   final _makerController = TextEditingController();
   final _modelController = TextEditingController();
   final _plateNumberController = TextEditingController();
+  final _yearManufacturedController = TextEditingController();
+  final _engineCapacityController = TextEditingController();
   final _mileageController = TextEditingController();
   final _vinController = TextEditingController();
+  final _registrationCertificateController = TextEditingController();
+  final _insuranceNumberController = TextEditingController();
+  final _insuranceGivenDateController = TextEditingController();
+  final _insuranceExpiryDateController = TextEditingController();
+
+  final _licenceNumberController = TextEditingController();
+  final _licenceGivenDateController = TextEditingController();
+  final _licenceExpiryDateController = TextEditingController();
+  final _inspectionGivenDateController = TextEditingController();
+  final _inspectionExpiryDateController = TextEditingController();
+  final _passGivenDateController = TextEditingController();
+  final _passExpiryDateController = TextEditingController();
+  final _ownerController = TextEditingController();
 
   final FirestoreServices _firestoreServices = FirestoreServices();
+  final ImageServices _imageServices = ImageServices();
+  List<XFile> _selectedImages = [];
+  String? _selectedColor;
 
-  void _saveVehicle(Vehicle vehicle) {
-    try {
-      _firestoreServices.addVehicle(vehicle);
-      _clearForm();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Фура успешно добавлено')),
-      );
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка: $e')),
+  List<Trailer> _trailers = [];
+  Trailer? _selectedTrailer;
+  List<Driver> _drivers = [];
+  Driver? _selectedDriver;
+  bool _isLoadingTrailers = true;
+  bool _isLoadingDrivers = true;
+  bool _isLoadingVehicle = false;
+
+  
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTrailers();
+    _fetchDrivers();
+  }
+
+  void _fetchTrailers() {
+    _firestoreServices.getTrailers().listen(
+      (trailers) {
+        setState(() {
+          _trailers = trailers;
+          _isLoadingTrailers = false;
+        });
+      },
+      onError: (error) {
+        debugPrint('Error fetching trailers: $error');
+
+        setState(() {
+          _isLoadingTrailers = false;
+        });
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ошибка при загрузке прицепов')),
+        );
+      },
+    );
+  }
+
+  void _fetchDrivers() {
+    _firestoreServices.getDrivers().listen(
+      (drivers) {
+        setState(() {
+          _drivers = drivers;
+          _isLoadingDrivers = false;
+        });
+      },
+      onError: (error) {
+        debugPrint('Error fetching drivers: $error');
+        setState(() {
+          _isLoadingTrailers = false;
+        });
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ошибка при загрузке водителей')),
+        );
+      },
+    );
+  }
+
+  Widget _buildTrailerDropdown() {
+    if (_isLoadingTrailers) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (_trailers.isEmpty) {
+      return const Text('Нет доступных прицепов для выбора.');
+    } else {
+      return DropdownButtonFormField<Trailer>(
+        decoration: const InputDecoration(
+          labelText: 'Выберите прицеп',
+        ),
+        value: _selectedTrailer,
+        items: _trailers.map((trailer) {
+          return DropdownMenuItem<Trailer>(
+            value: trailer,
+            child: Text(trailer.plateNumber),
+          );
+        }).toList(),
+        onChanged: (Trailer? newValue) {
+          setState(() {
+            _selectedTrailer = newValue;
+          });
+        },
+        validator: (value) =>
+            value == null ? 'Пожалуйста, выберите прицеп' : null,
       );
     }
   }
 
-  void _clearForm() {
-    _makerController.clear();
-    _modelController.clear();
-    _plateNumberController.clear();
-    _mileageController.clear();
-    _vinController.clear();
+  Widget _buildDriverDropdown() {
+    if (_isLoadingDrivers) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_drivers.isEmpty) {
+      return const Text('Нет доступных водителей для выбора.');
+    }
+
+    return DropdownButtonFormField<Driver>(
+      decoration: const InputDecoration(
+        labelText: 'Выберите водителя',
+      ),
+      value: _selectedDriver,
+      items: _drivers.map((driver) {
+        return DropdownMenuItem<Driver>(
+          value: driver,
+          child: Text('${driver.name} ${driver.surname}'),
+        );
+      }).toList(),
+      onChanged: (Driver? newValue) {
+        setState(() {
+          _selectedDriver = newValue;
+        });
+      },
+      validator: (value) =>
+          value == null ? 'Пожалуйста, выберите водителя' : null,
+    );
+  }
+
+  Future<void> _uploadImagesAndUpdateVehicle(String vehicleId) async {
+    try {
+      List<String> imageUrls = [];
+
+      List<Future<String>> uploadFutures = _selectedImages.map((image) async {
+        final File compressedFile = await _imageServices.compressImage(image);
+        String imageUrl = await _imageServices.uploadImageToFirebase(
+            compressedFile, 'vehicles');
+        return imageUrl;
+      }).toList();
+
+      imageUrls = await Future.wait(uploadFutures);
+
+      await _firestoreServices.updateVehicleImages(vehicleId, imageUrls);
+    } catch (e) {
+      debugPrint('Error uploading images: $e');
+    }
+  }
+
+  void _addVehicle() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoadingVehicle = true;
+      });
+
+      try {
+        // Generate a unique ID for the vehicle
+        final vehicleId =
+            FirebaseFirestore.instance.collection('vehicles').doc().id;
+
+        // Parse date fields from controllers
+        final insuranceGivenDate =
+            DateFormat('dd.MM.yyyy').parse(_insuranceGivenDateController.text);
+        final insuranceExpiryDate =
+            DateFormat('dd.MM.yyyy').parse(_insuranceExpiryDateController.text);
+
+        final licenceGivenDate =
+            DateFormat('dd.MM.yyyy').parse(_licenceGivenDateController.text);
+        final licenceExpiryDate =
+            DateFormat('dd.MM.yyyy').parse(_licenceExpiryDateController.text);
+
+        final inspectionGivenDate =
+            DateFormat('dd.MM.yyyy').parse(_inspectionGivenDateController.text);
+        final inspectionExpiryDate = DateFormat('dd.MM.yyyy')
+            .parse(_inspectionExpiryDateController.text);
+
+        final passGivenDate =
+            DateFormat('dd.MM.yyyy').parse(_passGivenDateController.text);
+        final passExpiryDate =
+            DateFormat('dd.MM.yyyy').parse(_passExpiryDateController.text);
+
+        // Create a new Vehicle instance
+        final newVehicle = Vehicle(
+          id: vehicleId,
+          maker: _makerController.text.trim(),
+          model: _modelController.text.trim(),
+          plateNumber: _plateNumberController.text.trim(),
+          yearManufactured: _yearManufacturedController.text.trim(), // String
+          engineCapacity: double.parse(_engineCapacityController.text.trim()),
+          color: _selectedColor!,
+          mileage: int.parse(_mileageController.text.trim()),
+          vin: _vinController.text.trim(),
+          registrationCertificateNumber:
+              _registrationCertificateController.text.trim(),
+          insuranceCertificateNumber: _insuranceNumberController.text.trim(),
+          insuranceCertificateGivenDate: Timestamp.fromDate(insuranceGivenDate),
+          insuranceCertificateExpiryDate:
+              Timestamp.fromDate(insuranceExpiryDate),
+          licenceNumber: _licenceNumberController.text.trim(),
+          licenceGivenDate: Timestamp.fromDate(licenceGivenDate),
+          licenceExpiryDate: Timestamp.fromDate(licenceExpiryDate),
+          inspectionGivenDate: Timestamp.fromDate(inspectionGivenDate),
+          inspectionExpiryDate: Timestamp.fromDate(inspectionExpiryDate),
+          passGivenDate: Timestamp.fromDate(passGivenDate),
+          passExpiryDate: Timestamp.fromDate(passExpiryDate),
+          trailer: _selectedTrailer!,
+          driver: _selectedDriver!,
+          owner: _ownerController.text.trim(),
+          imageUrls: [],
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+        );
+
+        // Add the vehicle to Firestore
+        await _firestoreServices.addVehicle(newVehicle);
+        _uploadImagesAndUpdateVehicle(vehicleId);
+
+        if (!mounted) return;
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Транспортное средство добавлено успешно!')),
+        );
+
+        // Clear the form or navigate back
+        Navigator.pop(context);
+      } catch (e) {
+        debugPrint('Error adding vehicle: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Ошибка при добавлении транспортного средства.')),
+        );
+      } finally {
+        setState(() {
+          _isLoadingVehicle = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
+    super.dispose();
     _makerController.dispose();
     _modelController.dispose();
+    _yearManufacturedController.dispose();
+    _engineCapacityController.dispose();
     _plateNumberController.dispose();
     _mileageController.dispose();
     _vinController.dispose();
-    super.dispose();
+    _registrationCertificateController.dispose();
+    _insuranceNumberController.dispose();
+    _insuranceGivenDateController.dispose();
+    _insuranceExpiryDateController.dispose();
+    _licenceNumberController.dispose();
+    _licenceGivenDateController.dispose();
+    _licenceExpiryDateController.dispose();
+    _inspectionGivenDateController.dispose();
+    _inspectionExpiryDateController.dispose();
+    _passGivenDateController.dispose();
+    _passExpiryDateController.dispose();
+    _ownerController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final DateTime firstDate = DateTime.now();
+    final DateTime lastDate = DateTime.now().add(const Duration(days: 5 * 365));
     return Scaffold(
       appBar: AppBar(
         title: const Text('Добавить фуру'),
@@ -68,65 +319,206 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
             key: _formKey,
             child: Column(
               children: <Widget>[
-                TextFormField(
+                CustomTextFormField(
                   controller: _makerController,
-                  decoration: const InputDecoration(labelText: 'Марка'),
-                  textCapitalization: TextCapitalization.characters,
+                  labelText: 'Марка',
                   validator: (value) =>
                       value!.isEmpty ? 'Пожалуйста, введите марку' : null,
                 ),
                 AppConst.smallSpace,
-                TextFormField(
+                CustomTextFormField(
                   controller: _modelController,
-                  decoration: const InputDecoration(labelText: 'Модель'),
-                  textCapitalization: TextCapitalization.characters,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Пожалуйста, введите модель' : null,
+                  labelText: 'Модель',
                 ),
                 AppConst.smallSpace,
-                TextFormField(
+                CustomTextFormField(
                   controller: _plateNumberController,
-                  decoration: const InputDecoration(labelText: 'Номерной знак'),
-                  textCapitalization: TextCapitalization.characters,
+                  labelText: 'Номерной знак',
                   validator: (value) => value!.isEmpty
                       ? 'Пожалуйста, введите номерной знак'
                       : null,
                 ),
                 AppConst.smallSpace,
-                TextFormField(
+                CustomTextFormField(
+                  controller: _yearManufacturedController,
+                  labelText: 'Год выпуска',
+                  keyboardType: TextInputType.number,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Пожалуйста, введите год выпуска' : null,
+                ),
+                AppConst.smallSpace,
+                CustomTextFormField(
+                  controller: _engineCapacityController,
+                  labelText: 'Обьем двигателя',
+                  keyboardType: TextInputType.number,
+                  validator: (value) => value!.isEmpty
+                      ? 'Пожалуйста, введите обьем двигателя'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DropdownButtonFormField<String>(
+      decoration: const InputDecoration(
+        labelText: 'Цвет',
+        border: OutlineInputBorder(),
+      ),
+      value: _selectedColor,
+      items: AppConst.colorOptions.map((String color) {
+        return DropdownMenuItem<String>(
+          value: color,
+          child: Text(color),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() {
+          _selectedColor = newValue!;
+        });
+      },
+      validator: (value) =>
+          value == null ? 'Пожалуйста, выберите цвет' : null,
+    ),
+                AppConst.smallSpace,
+                CustomTextFormField(
                   controller: _mileageController,
-                  decoration: const InputDecoration(labelText: 'Пробег'),
-                  keyboardType: TextInputType.phone,
+                  labelText: 'Пробег',
+                  keyboardType: TextInputType.number,
                   validator: (value) =>
                       value!.isEmpty ? 'Пожалуйста, введите пробег' : null,
                 ),
                 AppConst.smallSpace,
-                TextFormField(
+                CustomTextFormField(
                   controller: _vinController,
-                  decoration: const InputDecoration(labelText: 'VIN'),
-                  textCapitalization: TextCapitalization.characters,
+                  labelText: 'VIN',
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9-]')),
+                  ],
                   validator: (value) =>
                       value!.isEmpty ? 'Пожалуйста, введите VIN' : null,
                 ),
-                AppConst.mediumSpace,
-                CustomFilledButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Vehicle vehicle = Vehicle(
-                        id: '',
-                        createdAt: DateTime.now(),
-                        updatedAt: DateTime.now(),
-                        maker: _makerController.text,
-                        model: _modelController.text,
-                        plateNumber: _plateNumberController.text,
-                        mileage: int.parse(_mileageController.text),
-                        vin: _vinController.text,
-                      );
-                      _saveVehicle(vehicle);
-                    }
-                  },
-                  title: 'СОХРАНИТЬ',
+                AppConst.smallSpace,
+                CustomTextFormField(
+                  controller: _ownerController,
+                  labelText: 'Владелец',
+                  textCapitalization: TextCapitalization.words,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Пожалуйста, введите владелца' : null,
                 ),
+                AppConst.smallSpace,
+                CustomTextFormField(
+                  controller: _registrationCertificateController,
+                  labelText: 'Номер тех.паспорта',
+                  validator: (value) => value!.isEmpty
+                      ? 'Пожалуйста, введите номер тех.паспорта'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                CustomTextFormField(
+                  controller: _insuranceNumberController,
+                  labelText: 'Номер страховки',
+                  validator: (value) => value!.isEmpty
+                      ? 'Пожалуйста, введите номер страховки'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _insuranceGivenDateController,
+                  labelText: 'Дата выдачи страховки',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату выдачи страховки'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _insuranceExpiryDateController,
+                  labelText: 'Дата окончания страховки',
+                  firstDate: firstDate,
+                  lastDate: lastDate,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату окончания страховки'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                CustomTextFormField(
+                  controller: _licenceNumberController,
+                  labelText: 'Номер лицензии',
+                  validator: (value) => value!.isEmpty
+                      ? 'Пожалуйста, введите номер лицензии'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _licenceGivenDateController,
+                  labelText: 'Дата выдачи лицензии',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату выдачи лицензии'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _licenceExpiryDateController,
+                  labelText: 'Дата окончания лицензии',
+                  firstDate: firstDate,
+                  lastDate: lastDate,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату окончания лицензии'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _inspectionGivenDateController,
+                  labelText: 'Дата выдачи тех.осмотра',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату выдачи тех.осмотра'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _inspectionExpiryDateController,
+                  labelText: 'Дата окончания тех.осмотра',
+                  firstDate: firstDate,
+                  lastDate: lastDate,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату окончания тех.осмотра'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _passGivenDateController,
+                  labelText: 'Дата выдачи пропуска',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату выдачи пропуска'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _passExpiryDateController,
+                  labelText: 'Дата окончания пропуска',
+                  firstDate: firstDate,
+                  lastDate: lastDate,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату окончания тпропуска'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                _buildTrailerDropdown(),
+                AppConst.smallSpace,
+                _buildDriverDropdown(),
+                AppConst.mediumSpace,
+                ImagePickerWidget(
+                  onImagesSelected: (images) {
+                    setState(() {
+                      _selectedImages = images;
+                    });
+                  },
+                  initialImages: _selectedImages,
+                ),
+                AppConst.mediumSpace,
+                _isLoadingVehicle
+                    ? const Center(child: CircularProgressIndicator())
+                    : CustomFilledButton(
+                        onPressed: _addVehicle,
+                        title: 'СОХРАНИТЬ',
+                      ),
+                AppConst.mediumSpace,
               ],
             ),
           ),

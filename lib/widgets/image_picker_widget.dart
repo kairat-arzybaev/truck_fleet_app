@@ -95,7 +95,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
           widget.title,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        AppConst.mediumSpace,
+        AppConst.smallSpace,
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -104,7 +104,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
               icon: const Icon(Icons.camera_alt),
               label: const Text('Камера'),
             ),
-            const SizedBox(width: 16),
+            AppConst.smallSpace,
             ElevatedButton.icon(
               onPressed: () => _pickImage(ImageSource.gallery),
               icon: const Icon(Icons.photo_library),

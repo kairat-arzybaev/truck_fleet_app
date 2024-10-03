@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:truck_fleet_app/app_const.dart';
+import 'package:truck_fleet_app/widgets/expandable_imagegrid.dart';
+import '/widgets/confirmation_dialog.dart';
 import '/models/trailer.dart';
-import 'document_images_page.dart';
 import 'edit_trailer_page.dart';
 import '/services/firestore_services.dart';
 
@@ -21,6 +23,49 @@ class _TrailerDetailsPageState extends State<TrailerDetailsPage> {
   void initState() {
     super.initState();
     _trailer = widget.trailer;
+  }
+
+  void _editTrailer() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditTrailerPage(trailer: _trailer),
+      ),
+    );
+  }
+
+  void _deleteTrailer() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => const ConfirmationDialog(
+        title: 'Удалить прицеп',
+        content: 'Вы уверены, что хотите удалить этот прицеп?',
+      ),
+    ).then((value) => value ?? false);
+    if (confirm) {
+      try {
+        await _firestoreServices.deleteDocumentWithImages(
+          collectionName: 'trailers',
+          documentId: _trailer.id,
+          imageUrls: _trailer.registrationCertificateUrls!,
+        );
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Прицеп и связанные изображения удалены.')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        debugPrint('Error deleting trailer and images: $e');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Ошибка при удалении прицепа или изображений.')),
+        );
+      }
+    }
   }
 
   @override
@@ -44,79 +89,36 @@ class _TrailerDetailsPageState extends State<TrailerDetailsPage> {
   }
 
   Widget _buildTrailerDetails(Trailer trailer) {
-    return Padding(
+    final imageUrls = trailer.registrationCertificateUrls ?? [];
+
+    return ListView(
       padding: const EdgeInsets.all(16.0),
-      child: ListView(
-        children: [
-          Text(
-            '${trailer.maker} ${trailer.model}',
-            style: Theme.of(context).textTheme.titleLarge,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.deepOrange,
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(height: 8),
-          Text('Номерной знак: ${trailer.plateNumber}'),
-          Text('VIN: ${trailer.vin}'),
-          Text('Тип: ${trailer.type.toString().split('.').last}'),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => _showDocumentImages(trailer),
-            child: const Text('Просмотреть документы'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${trailer.maker} ${trailer.model}',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Text('Гос. Номер: ${trailer.plateNumber}'),
+              Text('VIN: ${trailer.vin}'),
+              Text('Тип: ${trailer.type.displayName}'),
+              Text('Год выпуска: ${trailer.yearManufactered}'),
+            ],
           ),
-        ],
-      ),
+        ),
+        AppConst.mediumSpace,
+        ExpandableImageGrid(imageUrls: imageUrls)
+      ],
     );
-  }
-
-  void _showDocumentImages(Trailer trailer) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            DocumentImagesPage(imageUrls: trailer.registrationCertificateUrls!),
-      ),
-    );
-  }
-
-  void _editTrailer() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditTrailerPage(trailer: _trailer),
-      ),
-    );
-    // Optionally refresh data if the trailer was edited
-  }
-
-  void _deleteTrailer() async {
-    final confirm = await _showDeleteConfirmationDialog();
-    if (confirm) {
-      await _firestoreServices.deleteTrailer(_trailer);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Прицеп удален.')),
-      );
-      Navigator.pop(context);
-    }
-  }
-
-  Future<bool> _showDeleteConfirmationDialog() {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Удалить прицеп'),
-          content: const Text('Вы уверены, что хотите удалить этот прицеп?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('ОТМЕНА'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('УДАЛИТЬ'),
-            ),
-          ],
-        );
-      },
-    ).then((value) => value ?? false);
   }
 }
