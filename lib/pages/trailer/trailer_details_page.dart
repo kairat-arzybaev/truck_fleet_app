@@ -25,8 +25,9 @@ class _TrailerDetailsPageState extends State<TrailerDetailsPage> {
     _trailer = widget.trailer;
   }
 
-  void _editTrailer() async {
-    await Navigator.push(
+  void _editTrailer() {
+    Navigator.pop(context);
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => EditTrailerPage(trailer: _trailer),
@@ -47,16 +48,15 @@ class _TrailerDetailsPageState extends State<TrailerDetailsPage> {
         await _firestoreServices.deleteDocumentWithImages(
           collectionName: 'trailers',
           documentId: _trailer.id,
-          imageUrls: _trailer.registrationCertificateUrls!,
+          imageUrls: _trailer.imageUrls!,
         );
 
         if (!mounted) return;
-
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Прицеп и связанные изображения удалены.')),
         );
-        Navigator.pop(context);
       } catch (e) {
         debugPrint('Error deleting trailer and images: $e');
         if (!mounted) return;
@@ -89,7 +89,7 @@ class _TrailerDetailsPageState extends State<TrailerDetailsPage> {
   }
 
   Widget _buildTrailerDetails(Trailer trailer) {
-    final imageUrls = trailer.registrationCertificateUrls ?? [];
+    final imageUrls = trailer.imageUrls ?? [];
 
     return ListView(
       padding: const EdgeInsets.all(16.0),
@@ -99,7 +99,7 @@ class _TrailerDetailsPageState extends State<TrailerDetailsPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.deepOrange,
+            color: Colors.orange,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -111,8 +111,11 @@ class _TrailerDetailsPageState extends State<TrailerDetailsPage> {
               ),
               Text('Гос. Номер: ${trailer.plateNumber}'),
               Text('VIN: ${trailer.vin}'),
-              Text('Тип: ${trailer.type.displayName}'),
+              Text('Цвет: ${trailer.color}'),
               Text('Год выпуска: ${trailer.yearManufactered}'),
+              Text('Тип: ${trailer.type.displayName}'),
+              Text('Подтип: ${trailer.subType}'),
+              Text('Размер: ${trailer.capacity}'),
             ],
           ),
         ),

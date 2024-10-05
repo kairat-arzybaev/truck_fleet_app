@@ -12,17 +12,19 @@ class Vehicle {
   final String color;
   final int mileage;
   final String vin;
-  final String registrationCertificateNumber;
-  final String insuranceCertificateNumber;
-  final Timestamp insuranceCertificateGivenDate;
-  final Timestamp insuranceCertificateExpiryDate; 
-  final String licenceNumber;
+  final Timestamp insuranceCertificateGivenDateRu;
+  final Timestamp insuranceCertificateExpiryDateRu;
+  final Timestamp insuranceCertificateGivenDateKz;
+  final Timestamp insuranceCertificateExpiryDateKz;
   final Timestamp licenceGivenDate;
   final Timestamp licenceExpiryDate;
   final Timestamp inspectionGivenDate;
   final Timestamp inspectionExpiryDate;
   final Timestamp passGivenDate;
   final Timestamp passExpiryDate;
+  final Timestamp permitGivenDate;
+  final Timestamp permitExpiryDate;
+
   final Trailer trailer;
   final Driver driver;
   final String owner;
@@ -40,17 +42,18 @@ class Vehicle {
     required this.color,
     required this.mileage,
     required this.vin,
-    required this.registrationCertificateNumber,
-    required this.insuranceCertificateNumber,
-    required this.insuranceCertificateGivenDate,
-    required this.insuranceCertificateExpiryDate,
-    required this.licenceNumber,
+    required this.insuranceCertificateGivenDateRu,
+    required this.insuranceCertificateExpiryDateRu,
+    required this.insuranceCertificateGivenDateKz,
+    required this.insuranceCertificateExpiryDateKz,
     required this.licenceGivenDate,
     required this.licenceExpiryDate,
     required this.inspectionGivenDate,
     required this.inspectionExpiryDate,
     required this.passGivenDate,
     required this.passExpiryDate,
+    required this.permitGivenDate,
+    required this.permitExpiryDate,
     required this.trailer,
     required this.driver,
     required this.owner,
@@ -71,19 +74,20 @@ class Vehicle {
       'color': color,
       'mileage': mileage,
       'vin': vin,
-      'registrationCertificateNumber': registrationCertificateNumber,
-      'insuranceCertificateNumber': insuranceCertificateNumber,
-      'insuranceCertificateGivenDate': insuranceCertificateGivenDate,
-      'insuranceCertificateExpiryDate': insuranceCertificateExpiryDate,
-      'licenceNumber': licenceNumber,
+      'insuranceCertificateGivenDateRu': insuranceCertificateGivenDateRu,
+      'insuranceCertificateExpiryDateRu': insuranceCertificateExpiryDateRu,
+      'insuranceCertificateGivenDateKz': insuranceCertificateGivenDateKz,
+      'insuranceCertificateExpiryDateKz': insuranceCertificateExpiryDateKz,
       'licenceGivenDate': licenceGivenDate,
       'licenceExpiryDate': licenceExpiryDate,
       'inspectionGivenDate': inspectionGivenDate,
       'inspectionExpiryDate': inspectionExpiryDate,
       'passGivenDate': passGivenDate,
       'passExpiryDate': passExpiryDate,
-      'trailer': trailer.toMap(), 
-      'driver': driver.toMap(),   
+      'permitGivenDate': permitGivenDate,
+      'permitExpiryDate': permitExpiryDate,
+      'trailer': trailer.toMap(),
+      'driver': driver.toMap(),
       'owner': owner,
       'imageUrls': imageUrls,
       'createdAt': createdAt,
@@ -105,17 +109,22 @@ class Vehicle {
       color: map['color'] as String,
       mileage: map['mileage'] as int,
       vin: map['vin'] as String,
-      registrationCertificateNumber: map['registrationCertificateNumber'] as String,
-      insuranceCertificateNumber: map['insuranceCertificateNumber'] as String,
-      insuranceCertificateGivenDate: map['insuranceCertificateGivenDate'] as Timestamp,
-      insuranceCertificateExpiryDate: map['insuranceCertificateExpiryDate'] as Timestamp,
-      licenceNumber: map['licenceNumber'] as String,
+      insuranceCertificateGivenDateRu:
+          map['insuranceCertificateGivenDateRu'] as Timestamp,
+      insuranceCertificateExpiryDateRu:
+          map['insuranceCertificateExpiryDateRu'] as Timestamp,
+      insuranceCertificateGivenDateKz:
+          map['insuranceCertificateGivenDateKz'] as Timestamp,
+      insuranceCertificateExpiryDateKz:
+          map['insuranceCertificateExpiryDateKz'] as Timestamp,
       licenceGivenDate: map['licenceGivenDate'] as Timestamp,
       licenceExpiryDate: map['licenceExpiryDate'] as Timestamp,
       inspectionGivenDate: map['inspectionGivenDate'] as Timestamp,
       inspectionExpiryDate: map['inspectionExpiryDate'] as Timestamp,
       passGivenDate: map['passGivenDate'] as Timestamp,
       passExpiryDate: map['passExpiryDate'] as Timestamp,
+      permitGivenDate: map['permitGivenDate'] as Timestamp,
+      permitExpiryDate: map['permitExpiryDate'] as Timestamp,
       trailer: Trailer.fromMap(map['trailer'] as Map<String, dynamic>),
       driver: Driver.fromMap(map['driver'] as Map<String, dynamic>),
       owner: map['owner'] as String,
@@ -136,17 +145,19 @@ class Vehicle {
     String? color,
     int? mileage,
     String? vin,
-    String? registrationCertificateNumber,
-    String? insuranceCertificateNumber,
-    Timestamp? insuranceCertificateGivenDate,
-    Timestamp? insuranceCertificateExpiryDate,
-    String? licenceNumber,
+    Timestamp? insuranceCertificateGivenDateRu,
+    Timestamp? insuranceCertificateExpiryDateRu,
+    String? insuranceCertificateNumberKz,
+    Timestamp? insuranceCertificateGivenDateKz,
+    Timestamp? insuranceCertificateExpiryDateKz,
     Timestamp? licenceGivenDate,
     Timestamp? licenceExpiryDate,
     Timestamp? inspectionGivenDate,
     Timestamp? inspectionExpiryDate,
     Timestamp? passGivenDate,
     Timestamp? passExpiryDate,
+    Timestamp? permitGivenDate,
+    Timestamp? permitExpiryDate,
     Trailer? trailer,
     Driver? driver,
     String? owner,
@@ -164,17 +175,22 @@ class Vehicle {
       color: color ?? this.color,
       mileage: mileage ?? this.mileage,
       vin: vin ?? this.vin,
-      registrationCertificateNumber: registrationCertificateNumber ?? this.registrationCertificateNumber,
-      insuranceCertificateNumber: insuranceCertificateNumber ?? this.insuranceCertificateNumber,
-      insuranceCertificateGivenDate: insuranceCertificateGivenDate ?? this.insuranceCertificateGivenDate,
-      insuranceCertificateExpiryDate: insuranceCertificateExpiryDate ?? this.insuranceCertificateExpiryDate,
-      licenceNumber: licenceNumber ?? this.licenceNumber,
+      insuranceCertificateGivenDateRu: insuranceCertificateGivenDateRu ??
+          this.insuranceCertificateGivenDateRu,
+      insuranceCertificateExpiryDateRu: insuranceCertificateExpiryDateRu ??
+          this.insuranceCertificateExpiryDateRu,
+      insuranceCertificateGivenDateKz: insuranceCertificateGivenDateKz ??
+          this.insuranceCertificateGivenDateKz,
+      insuranceCertificateExpiryDateKz: insuranceCertificateExpiryDateKz ??
+          this.insuranceCertificateExpiryDateKz,
       licenceGivenDate: licenceGivenDate ?? this.licenceGivenDate,
       licenceExpiryDate: licenceExpiryDate ?? this.licenceExpiryDate,
       inspectionGivenDate: inspectionGivenDate ?? this.inspectionGivenDate,
       inspectionExpiryDate: inspectionExpiryDate ?? this.inspectionExpiryDate,
       passGivenDate: passGivenDate ?? this.passGivenDate,
       passExpiryDate: passExpiryDate ?? this.passExpiryDate,
+      permitGivenDate: permitGivenDate ?? this.permitGivenDate,
+      permitExpiryDate: permitExpiryDate ?? this.permitExpiryDate,
       trailer: trailer ?? this.trailer,
       driver: driver ?? this.driver,
       owner: owner ?? this.owner,

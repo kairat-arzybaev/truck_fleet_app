@@ -38,17 +38,20 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
   late TextEditingController _engineCapacityController;
   late TextEditingController _mileageController;
   late TextEditingController _vinController;
-  late TextEditingController _registrationCertificateController;
-  late TextEditingController _insuranceNumberController;
-  late TextEditingController _insuranceGivenDateController;
-  late TextEditingController _insuranceExpiryDateController;
-  late TextEditingController _licenceNumberController;
+  late TextEditingController _insuranceGivenDateRuController;
+  late TextEditingController _insuranceExpiryDateRuController;
+
+  late TextEditingController _insuranceGivenDateKzController;
+  late TextEditingController _insuranceExpiryDateKzController;
   late TextEditingController _licenceGivenDateController;
   late TextEditingController _licenceExpiryDateController;
   late TextEditingController _inspectionGivenDateController;
   late TextEditingController _inspectionExpiryDateController;
   late TextEditingController _passGivenDateController;
   late TextEditingController _passExpiryDateController;
+  late TextEditingController _permitGivenDateController;
+  late TextEditingController _permitExpiryDateController;
+
   late TextEditingController _ownerController;
 
   // State variables
@@ -83,20 +86,25 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
     _mileageController =
         TextEditingController(text: vehicle.mileage.toString());
     _vinController = TextEditingController(text: vehicle.vin);
-    _registrationCertificateController =
-        TextEditingController(text: vehicle.registrationCertificateNumber);
-    _insuranceNumberController =
-        TextEditingController(text: vehicle.insuranceCertificateNumber);
-    _insuranceGivenDateController = TextEditingController(
+
+    _insuranceGivenDateRuController = TextEditingController(
       text: DateFormat('dd.MM.yyyy')
-          .format(vehicle.insuranceCertificateGivenDate.toDate()),
+          .format(vehicle.insuranceCertificateGivenDateRu.toDate()),
     );
-    _insuranceExpiryDateController = TextEditingController(
+    _insuranceExpiryDateRuController = TextEditingController(
       text: DateFormat('dd.MM.yyyy')
-          .format(vehicle.insuranceCertificateExpiryDate.toDate()),
+          .format(vehicle.insuranceCertificateExpiryDateRu.toDate()),
     );
-    _licenceNumberController =
-        TextEditingController(text: vehicle.licenceNumber);
+
+    _insuranceGivenDateKzController = TextEditingController(
+      text: DateFormat('dd.MM.yyyy')
+          .format(vehicle.insuranceCertificateGivenDateKz.toDate()),
+    );
+    _insuranceExpiryDateKzController = TextEditingController(
+      text: DateFormat('dd.MM.yyyy')
+          .format(vehicle.insuranceCertificateExpiryDateKz.toDate()),
+    );
+
     _licenceGivenDateController = TextEditingController(
       text: DateFormat('dd.MM.yyyy').format(vehicle.licenceGivenDate.toDate()),
     );
@@ -116,6 +124,12 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
     );
     _passExpiryDateController = TextEditingController(
       text: DateFormat('dd.MM.yyyy').format(vehicle.passExpiryDate.toDate()),
+    );
+    _permitGivenDateController = TextEditingController(
+      text: DateFormat('dd.MM.yyyy').format(vehicle.permitGivenDate.toDate()),
+    );
+    _permitExpiryDateController = TextEditingController(
+      text: DateFormat('dd.MM.yyyy').format(vehicle.permitExpiryDate.toDate()),
     );
     _ownerController = TextEditingController(text: vehicle.owner);
     _selectedColor = vehicle.color;
@@ -138,17 +152,20 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
     _engineCapacityController.dispose();
     _mileageController.dispose();
     _vinController.dispose();
-    _registrationCertificateController.dispose();
-    _insuranceNumberController.dispose();
-    _insuranceGivenDateController.dispose();
-    _insuranceExpiryDateController.dispose();
-    _licenceNumberController.dispose();
+    _insuranceGivenDateRuController.dispose();
+    _insuranceExpiryDateRuController.dispose();
+
+    _insuranceGivenDateKzController.dispose();
+    _insuranceExpiryDateKzController.dispose();
+
     _licenceGivenDateController.dispose();
     _licenceExpiryDateController.dispose();
     _inspectionGivenDateController.dispose();
     _inspectionExpiryDateController.dispose();
     _passGivenDateController.dispose();
     _passExpiryDateController.dispose();
+    _permitGivenDateController.dispose();
+    _permitExpiryDateController.dispose();
     _ownerController.dispose();
     super.dispose();
   }
@@ -189,10 +206,15 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
 
       try {
         // Parse date fields
-        final insuranceGivenDate =
-            DateFormat('dd.MM.yyyy').parse(_insuranceGivenDateController.text);
-        final insuranceExpiryDate =
-            DateFormat('dd.MM.yyyy').parse(_insuranceExpiryDateController.text);
+        final insuranceGivenDateRu = DateFormat('dd.MM.yyyy')
+            .parse(_insuranceGivenDateRuController.text);
+        final insuranceExpiryDateRu = DateFormat('dd.MM.yyyy')
+            .parse(_insuranceExpiryDateRuController.text);
+
+        final insuranceGivenDateKz = DateFormat('dd.MM.yyyy')
+            .parse(_insuranceGivenDateKzController.text);
+        final insuranceExpiryDateKz = DateFormat('dd.MM.yyyy')
+            .parse(_insuranceExpiryDateKzController.text);
         final licenceGivenDate =
             DateFormat('dd.MM.yyyy').parse(_licenceGivenDateController.text);
         final licenceExpiryDate =
@@ -205,6 +227,11 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
             DateFormat('dd.MM.yyyy').parse(_passGivenDateController.text);
         final passExpiryDate =
             DateFormat('dd.MM.yyyy').parse(_passExpiryDateController.text);
+            final permitGivenDate =
+            DateFormat('dd.MM.yyyy').parse(_permitGivenDateController.text);
+        final permitExpiryDate =
+            DateFormat('dd.MM.yyyy').parse(_permitExpiryDateController.text);
+
 
         // Create updated Vehicle object
         final updatedVehicle = widget.vehicle.copyWith(
@@ -216,19 +243,24 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
           color: _selectedColor,
           mileage: int.parse(_mileageController.text.trim()),
           vin: _vinController.text.trim(),
-          registrationCertificateNumber:
-              _registrationCertificateController.text.trim(),
-          insuranceCertificateNumber: _insuranceNumberController.text.trim(),
-          insuranceCertificateGivenDate: Timestamp.fromDate(insuranceGivenDate),
-          insuranceCertificateExpiryDate:
-              Timestamp.fromDate(insuranceExpiryDate),
-          licenceNumber: _licenceNumberController.text.trim(),
+          
+          insuranceCertificateGivenDateRu:
+              Timestamp.fromDate(insuranceGivenDateRu),
+          insuranceCertificateExpiryDateRu:
+              Timestamp.fromDate(insuranceExpiryDateRu),
+         
+          insuranceCertificateGivenDateKz:
+              Timestamp.fromDate(insuranceGivenDateKz),
+          insuranceCertificateExpiryDateKz:
+              Timestamp.fromDate(insuranceExpiryDateKz),
           licenceGivenDate: Timestamp.fromDate(licenceGivenDate),
           licenceExpiryDate: Timestamp.fromDate(licenceExpiryDate),
           inspectionGivenDate: Timestamp.fromDate(inspectionGivenDate),
           inspectionExpiryDate: Timestamp.fromDate(inspectionExpiryDate),
           passGivenDate: Timestamp.fromDate(passGivenDate),
           passExpiryDate: Timestamp.fromDate(passExpiryDate),
+          permitGivenDate: Timestamp.fromDate(permitGivenDate),
+          permitExpiryDate: Timestamp.fromDate(permitExpiryDate),
           trailer: _selectedTrailer,
           driver: _selectedDriver,
           owner: _ownerController.text.trim(),
@@ -342,7 +374,6 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
                     DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
                         labelText: 'Цвет',
-                        border: OutlineInputBorder(),
                       ),
                       value: _selectedColor,
                       items: AppConst.colorOptions.map((String color) {
@@ -374,37 +405,40 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
                       labelText: 'VIN',
                     ),
                     AppConst.smallSpace,
-                    CustomTextFormField(
-                      controller: _registrationCertificateController,
-                      labelText: 'Номер тех.паспорта',
-                    ),
-                    AppConst.smallSpace,
-                    CustomTextFormField(
-                      controller: _insuranceNumberController,
-                      labelText: 'Номер страховки',
-                    ),
-                    AppConst.smallSpace,
                     DatePickerWidget(
-                      controller: _insuranceGivenDateController,
-                      labelText: 'Дата выдачи страховки',
+                      controller: _insuranceGivenDateRuController,
+                      labelText: 'Дата выдачи страховки - Россия',
                       validator: (value) => value!.isEmpty
-                          ? 'Пожалуйста, введите дату выдачи страховки'
+                          ? 'Пожалуйста, введите дату выдачи страховки - Россия'
                           : null,
                     ),
                     AppConst.smallSpace,
                     DatePickerWidget(
-                      controller: _insuranceExpiryDateController,
-                      labelText: 'Дата окончания страховки',
+                      controller: _insuranceExpiryDateRuController,
+                      labelText: 'Дата окончания страховки - Россия',
                       firstDate: firstDate,
                       lastDate: lastDate,
                       validator: (value) => value!.isEmpty
-                          ? 'Пожалуйста, введите дату окончания страховки'
+                          ? 'Пожалуйста, введите дату окончания страховки - Россия'
                           : null,
                     ),
                     AppConst.smallSpace,
-                    CustomTextFormField(
-                      controller: _licenceNumberController,
-                      labelText: 'Номер лицензии',
+                    DatePickerWidget(
+                      controller: _insuranceGivenDateKzController,
+                      labelText: 'Дата выдачи страховки - Казакстан',
+                      validator: (value) => value!.isEmpty
+                          ? 'Пожалуйста, введите дату выдачи страховки - Казакстан'
+                          : null,
+                    ),
+                    AppConst.smallSpace,
+                    DatePickerWidget(
+                      controller: _insuranceExpiryDateKzController,
+                      labelText: 'Дата окончания страховки - Казакстан',
+                      firstDate: firstDate,
+                      lastDate: lastDate,
+                      validator: (value) => value!.isEmpty
+                          ? 'Пожалуйста, введите дату окончания страховки - Казакстан'
+                          : null,
                     ),
                     AppConst.smallSpace,
                     DatePickerWidget(
@@ -458,6 +492,24 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
                       lastDate: lastDate,
                       validator: (value) => value!.isEmpty
                           ? 'Пожалуйста, введите дату окончания пропуска'
+                          : null,
+                    ),
+                    AppConst.smallSpace,
+                    DatePickerWidget(
+                      controller: _permitGivenDateController,
+                      labelText: 'Дата выдачи дозвола',
+                      validator: (value) => value!.isEmpty
+                          ? 'Пожалуйста, введите дату выдачи дозвола'
+                          : null,
+                    ),
+                    AppConst.smallSpace,
+                    DatePickerWidget(
+                      controller: _permitExpiryDateController,
+                      labelText: 'Дата окончания дозвола',
+                      firstDate: firstDate,
+                      lastDate: lastDate,
+                      validator: (value) => value!.isEmpty
+                          ? 'Пожалуйста, введите дату окончания дозвола'
                           : null,
                     ),
                     AppConst.smallSpace,

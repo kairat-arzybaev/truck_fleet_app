@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:truck_fleet_app/app_const.dart';
-import 'package:truck_fleet_app/pages/homepage.dart';
 import 'package:truck_fleet_app/widgets/custom_filled_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '/widgets/custom_textformfield.dart';
@@ -30,6 +29,9 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
   late TextEditingController _plateNumberController;
   late TextEditingController _vinController;
   late TextEditingController _yearManufacteredController;
+  late TextEditingController _capacityController;
+  String? _selectedColor;
+  String? _selectedOption;
   TrailerType? _selectedTrailerType;
   List<XFile> _selectedImages = [];
   List<String> _existingImageUrls = [];
@@ -38,15 +40,20 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
   @override
   void initState() {
     super.initState();
-    _makerController = TextEditingController(text: widget.trailer.maker);
-    _modelController = TextEditingController(text: widget.trailer.model);
+    final trailer = widget.trailer;
+
+    _makerController = TextEditingController(text: trailer.maker);
+    _modelController = TextEditingController(text: trailer.model);
     _yearManufacteredController =
-        TextEditingController(text: widget.trailer.yearManufactered.toString());
-    _plateNumberController =
-        TextEditingController(text: widget.trailer.plateNumber);
-    _vinController = TextEditingController(text: widget.trailer.vin);
-    _selectedTrailerType = widget.trailer.type;
-    _existingImageUrls = widget.trailer.registrationCertificateUrls!;
+        TextEditingController(text: trailer.yearManufactered.toString());
+    _plateNumberController = TextEditingController(text: trailer.plateNumber);
+    _vinController = TextEditingController(text: trailer.vin);
+    _capacityController =
+        TextEditingController(text: trailer.capacity.toString());
+    _selectedColor = trailer.color;
+    _selectedTrailerType = trailer.type;
+    _selectedOption = trailer.subType;
+    _existingImageUrls = trailer.imageUrls!;
   }
 
   Future<void> _updateTrailer() async {
@@ -62,8 +69,11 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
           yearManufactered: int.parse(_yearManufacteredController.text.trim()),
           plateNumber: _plateNumberController.text.trim(),
           vin: _vinController.text.trim(),
+          color: _selectedColor,
           type: _selectedTrailerType!,
-          registrationCertificateUrls: _existingImageUrls,
+          subType: _selectedOption!,
+          capacity: int.parse(_capacityController.text.trim()),
+          imageUrls: _existingImageUrls,
         );
 
         await _firestoreServices.updateTrailer(updatedTrailer);
@@ -76,10 +86,8 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Прицеп обновлен успешно!')),
         );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
+
+        Navigator.pop(context);
       } catch (e) {
         debugPrint('Error updating trailer: $e');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -145,9 +153,7 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
                       validator: (value) =>
                           value!.isEmpty ? 'Пожалуйста, введите марку' : null,
                     ),
-
                     AppConst.smallSpace,
-
                     CustomTextFormField(
                       controller: _modelController,
                       labelText: 'Модель',
@@ -155,7 +161,6 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
                           value!.isEmpty ? 'Введите модель' : null,
                     ),
                     AppConst.smallSpace,
-
                     CustomTextFormField(
                       controller: _yearManufacteredController,
                       labelText: 'Год выпуска',
@@ -163,7 +168,6 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
                           value!.isEmpty ? 'Введите год выпуска' : null,
                     ),
                     AppConst.smallSpace,
-
                     CustomTextFormField(
                       controller: _plateNumberController,
                       labelText: 'Номерной знак',
@@ -171,7 +175,6 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
                           value!.isEmpty ? 'Введите номерной знак' : null,
                     ),
                     AppConst.smallSpace,
-
                     CustomTextFormField(
                       controller: _vinController,
                       labelText: 'VIN',
@@ -179,8 +182,27 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
                           value!.isEmpty ? 'Введите VIN' : null,
                     ),
                     AppConst.smallSpace,
-
-                    // Trailer type dropdown
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Цвет',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: _selectedColor,
+                      items: AppConst.colorOptions.map((String color) {
+                        return DropdownMenuItem<String>(
+                          value: color,
+                          child: Text(color),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedColor = newValue!;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Пожалуйста, выберите цвет' : null,
+                    ),
+                    AppConst.smallSpace,
                     DropdownButtonFormField<TrailerType>(
                       value: _selectedTrailerType,
                       decoration:
@@ -199,15 +221,63 @@ class _EditTrailerPageState extends State<EditTrailerPage> {
                       validator: (value) =>
                           value == null ? 'Выберите тип прицепа' : null,
                     ),
+                    AppConst.smallSpace,
+                    CustomTextFormField(
+                      controller: _capacityController,
+                      labelText: 'Размер',
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Пожалуйста, введите размер';
+                        }
+                        return null;
+                      },
+                    ),
+                    AppConst.smallSpace,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Radio<String>(
+                                value: 'Мега',
+                                groupValue: _selectedOption,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _selectedOption = value;
+                                  });
+                                },
+                              ),
+                              const Text('Мега'),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Radio<String>(
+                                value: 'Стандарт',
+                                groupValue: _selectedOption,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _selectedOption = value;
+                                  });
+                                },
+                              ),
+                              const Text('Стандарт'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                     AppConst.mediumSpace,
-
                     ImagePickerWidget(
                       onImagesSelected: (images) {
                         _selectedImages = images;
                       },
                     ),
                     AppConst.smallSpace,
-
                     CustomFilledButton(
                       onPressed: _updateTrailer,
                       title: 'РЕДАКТИРОВАТЬ',

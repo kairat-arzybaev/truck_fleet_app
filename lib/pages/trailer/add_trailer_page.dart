@@ -29,7 +29,9 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
       TextEditingController();
   final TextEditingController _plateNumberController = TextEditingController();
   final TextEditingController _vinController = TextEditingController();
-
+  final TextEditingController _capacityController = TextEditingController();
+  String? _selectedColor;
+  String? _selectedOption = 'Мега';
   TrailerType? _selectedTrailerType;
   List<XFile> _selectedImages = [];
   bool _isLoading = false;
@@ -76,8 +78,11 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
           yearManufactered: int.parse(_yearManufacteredController.text.trim()),
           plateNumber: _plateNumberController.text.trim(),
           vin: _vinController.text.trim(),
+          color: _selectedColor!,
           type: _selectedTrailerType!,
-          registrationCertificateUrls: [],
+          subType: _selectedOption!,
+          capacity: int.parse(_capacityController.text.trim()),
+          imageUrls: [],
         );
 
         await _firestoreServices.addTrailer(trailer);
@@ -111,6 +116,9 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
     _modelController.dispose();
     _plateNumberController.dispose();
     _vinController.dispose();
+    _capacityController.dispose();
+    _yearManufacteredController.dispose();
+
     super.dispose();
   }
 
@@ -189,6 +197,26 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
                 },
               ),
               AppConst.smallSpace,
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Цвет',
+                ),
+                value: _selectedColor,
+                items: AppConst.colorOptions.map((String color) {
+                  return DropdownMenuItem<String>(
+                    value: color,
+                    child: Text(color),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedColor = newValue!;
+                  });
+                },
+                validator: (value) =>
+                    value == null ? 'Пожалуйста, выберите цвет' : null,
+              ),
+              AppConst.smallSpace,
               DropdownButtonFormField<TrailerType>(
                 value: _selectedTrailerType,
                 decoration: const InputDecoration(labelText: 'Тип прицепа'),
@@ -200,6 +228,56 @@ class _AddTrailerPageState extends State<AddTrailerPage> {
                 },
                 validator: (value) =>
                     value == null ? 'Пожалуйста, выберите тип прицепа' : null,
+              ),
+              AppConst.smallSpace,
+              CustomTextFormField(
+                controller: _capacityController,
+                labelText: 'Размер',
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введите размер';
+                  }
+                  return null;
+                },
+              ),
+              AppConst.smallSpace,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Radio<String>(
+                          value: 'Мега',
+                          groupValue: _selectedOption,
+                          onChanged: (String? value) {
+                            setState(() {
+                              _selectedOption = value;
+                            });
+                          },
+                        ),
+                        const Text('Мега'),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Radio<String>(
+                          value: 'Стандарт',
+                          groupValue: _selectedOption,
+                          onChanged: (String? value) {
+                            setState(() {
+                              _selectedOption = value;
+                            });
+                          },
+                        ),
+                        const Text('Стандарт'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               AppConst.mediumSpace,
               ImagePickerWidget(

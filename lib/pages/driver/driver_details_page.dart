@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:truck_fleet_app/widgets/expandable_imagegrid.dart';
 import '../../app_const.dart';
 import '/widgets/confirmation_dialog.dart';
@@ -17,6 +18,8 @@ class DriverDetailsPage extends StatefulWidget {
 
 class _DriverDetailsPageState extends State<DriverDetailsPage> {
   final FirestoreServices _firestoreServices = FirestoreServices();
+  final DateFormat dateFormatter = DateFormat('dd.MM.yyyy');
+
   late Driver _driver;
 
   @override
@@ -26,6 +29,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   }
 
   void _editDriver() async {
+    Navigator.pop(context);
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -51,11 +55,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
         );
 
         if (!mounted) return;
-
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Водитель удален успешно.')),
         );
-        Navigator.pop(context);
       } catch (e) {
         debugPrint('Error deleting driver: $e');
         if (!mounted) return;
@@ -67,32 +70,59 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   }
 
   Widget _buildDriverDetails(Driver driver) {
-    final imageUrls = driver.imageUrls ?? [];
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
         Container(
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            color: Colors.blueAccent,
+            color: Colors.blue.shade300,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${driver.name} ${driver.surname}',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              if (driver.patronymic != null && driver.patronymic!.isNotEmpty)
-                Text('Отчество: ${driver.patronymic}'),
-              Text('Телефон: ${driver.phoneNumber}'),
+              (driver.patronymic != null && driver.patronymic!.isNotEmpty)
+                  ? Text(
+                      '${driver.surname} ${driver.name} ${driver.patronymic}',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    )
+                  : Text(
+                      '${driver.surname} ${driver.name}',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+              _buildDetailRow('Номер ID', driver.idNumber),
+              _buildDetailRow('Номер телефона', driver.phoneNumber),
+              _buildDetailRow('Пол', driver.gender),
+              _buildDetailRow('Дата рождения',
+                  dateFormatter.format(driver.birthDate.toDate())),
+              _buildDetailRow('Дата выдачи патента',
+                  dateFormatter.format(driver.patentGivenDate.toDate())),
+              _buildDetailRow('Дата окончания патента',
+                  dateFormatter.format(driver.patentExpiryDate.toDate())),
             ],
           ),
         ),
         AppConst.mediumSpace,
-        ExpandableImageGrid(imageUrls: imageUrls)
+        ExpandableImageGrid(imageUrls: driver.imageUrls!)
       ],
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          AppConst.smallSpace,
+          Expanded(child: Text(value)),
+        ],
+      ),
     );
   }
 

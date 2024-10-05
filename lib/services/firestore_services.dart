@@ -40,7 +40,7 @@ class FirestoreServices {
 
   Future<void> updateTrailerImages(String trailerId, List<String> imageUrls) {
     return _db.collection('trailers').doc(trailerId).update({
-      'registrationCertificateUrls': imageUrls,
+      'imageUrls': imageUrls,
       'updatedAt': DateTime.now(),
     });
   }
@@ -55,8 +55,8 @@ class FirestoreServices {
   Future<void> deleteDriver(String driverId) =>
       _db.collection('drivers').doc(driverId).delete();
 
-  Stream<List<Driver>> getDrivers() {
-    return _db
+  Stream<List<Driver>> getDrivers()  {
+     return _db
         .collection('drivers')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {

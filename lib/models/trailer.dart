@@ -39,8 +39,12 @@ class Trailer {
   final int yearManufactered;
   final String plateNumber;
   final String vin;
+  final String color;
+
   final TrailerType type;
-  final List<String>? registrationCertificateUrls;
+  final String subType;
+  final int capacity;
+  final List<String>? imageUrls;
 
   Trailer({
     required this.id,
@@ -51,8 +55,11 @@ class Trailer {
     required this.yearManufactered,
     required this.plateNumber,
     required this.vin,
+    required this.color,
     required this.type,
-    this.registrationCertificateUrls,
+    required this.subType,
+    required this.capacity,
+    this.imageUrls,
   });
 
   Map<String, dynamic> toMap() {
@@ -65,8 +72,11 @@ class Trailer {
       'yearManufactered': yearManufactered,
       'plateNumber': plateNumber,
       'vin': vin,
+      'color': color,
       'type': type.value,
-      'registrationCertificateUrls': registrationCertificateUrls,
+      'subType': subType,
+      'capacity': capacity,
+      'imageUrls': imageUrls,
     };
   }
 
@@ -80,9 +90,11 @@ class Trailer {
       yearManufactered: map['yearManufactered'],
       plateNumber: map['plateNumber'],
       vin: map['vin'],
+      color: map['color'],
       type: TrailerTypeExtension.fromValue(map['type']),
-      registrationCertificateUrls:
-          List<String>.from(map['registrationCertificateUrls'] ?? []),
+      subType: map['subType'],
+      capacity: map['capacity'],
+      imageUrls: List<String>.from(map['imageUrls'] ?? []),
     );
   }
 
@@ -95,8 +107,11 @@ class Trailer {
     int? yearManufactered,
     String? plateNumber,
     String? vin,
+    String? color,
     TrailerType? type,
-    List<String>? registrationCertificateUrls,
+    String? subType,
+    int? capacity,
+    List<String>? imageUrls,
   }) {
     return Trailer(
       id: id ?? this.id,
@@ -107,9 +122,11 @@ class Trailer {
       yearManufactered: yearManufactered ?? this.yearManufactered,
       plateNumber: plateNumber ?? this.plateNumber,
       vin: vin ?? this.vin,
+      color: color ?? this.color,
       type: type ?? this.type,
-      registrationCertificateUrls:
-          registrationCertificateUrls ?? registrationCertificateUrls,
+      subType: subType ?? this.subType,
+      capacity: capacity ?? this.capacity,
+      imageUrls: imageUrls ?? imageUrls,
     );
   }
 

@@ -40,14 +40,14 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
         );
 
         if (!mounted) return;
-
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Фура удалена успешно.')),
         );
-        Navigator.pop(context);
       } catch (e) {
         debugPrint('Error deleting vehicle: $e');
         if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Ошибка при удалении фуры.')),
         );
@@ -67,6 +67,7 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
+              Navigator.pop(context);
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -102,21 +103,28 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
               _buildDetailRow('Цвет', widget.vehicle.color),
               _buildDetailRow('Пробег', widget.vehicle.mileage.toString()),
               _buildDetailRow('VIN', widget.vehicle.vin),
-              _buildDetailRow('Номер тех.паспорта',
-                  widget.vehicle.registrationCertificateNumber),
+
               _buildDetailRow(
-                  'Номер страховки', widget.vehicle.insuranceCertificateNumber),
-              _buildDetailRow(
-                'Дата выдачи страховки',
+                'Дата выдачи страховки-RU',
                 dateFormatter.format(
-                    widget.vehicle.insuranceCertificateGivenDate.toDate()),
+                    widget.vehicle.insuranceCertificateGivenDateRu.toDate()),
               ),
               _buildDetailRow(
-                'Дата окончания страховки',
+                'Дата окончания страховки-RU',
                 dateFormatter.format(
-                    widget.vehicle.insuranceCertificateExpiryDate.toDate()),
+                    widget.vehicle.insuranceCertificateExpiryDateRu.toDate()),
               ),
-              _buildDetailRow('Номер лицензии', widget.vehicle.licenceNumber),
+
+              _buildDetailRow(
+                'Дата выдачи страховки-KZ',
+                dateFormatter.format(
+                    widget.vehicle.insuranceCertificateGivenDateKz.toDate()),
+              ),
+              _buildDetailRow(
+                'Дата окончания страховки-KZ',
+                dateFormatter.format(
+                    widget.vehicle.insuranceCertificateExpiryDateKz.toDate()),
+              ),
               _buildDetailRow(
                 'Дата выдачи лицензии',
                 dateFormatter.format(widget.vehicle.licenceGivenDate.toDate()),
@@ -142,6 +150,14 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
               _buildDetailRow(
                 'Дата окончания пропуска',
                 dateFormatter.format(widget.vehicle.passExpiryDate.toDate()),
+              ),
+              _buildDetailRow(
+                'Дата выдачи дозвола',
+                dateFormatter.format(widget.vehicle.permitGivenDate.toDate()),
+              ),
+              _buildDetailRow(
+                'Дата окончания дозвола',
+                dateFormatter.format(widget.vehicle.permitExpiryDate.toDate()),
               ),
               _buildDetailRow('Владелец', widget.vehicle.owner),
 
@@ -195,7 +211,6 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
         _buildDetailRow('Марка прицепа', trailer.maker),
         _buildDetailRow('Модель прицепа', trailer.model),
         _buildDetailRow('Гос.номер прицепа', trailer.plateNumber),
-        // Add more trailer details as needed
       ],
     );
   }
@@ -207,7 +222,6 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
       children: [
         _buildDetailRow('ФИО водителя', '${driver.name} ${driver.surname}'),
         _buildDetailRow('Телефон водителя', driver.phoneNumber),
-        // Add more driver details as needed
       ],
     );
   }

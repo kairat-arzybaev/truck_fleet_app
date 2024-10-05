@@ -31,18 +31,19 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   final _engineCapacityController = TextEditingController();
   final _mileageController = TextEditingController();
   final _vinController = TextEditingController();
-  final _registrationCertificateController = TextEditingController();
-  final _insuranceNumberController = TextEditingController();
-  final _insuranceGivenDateController = TextEditingController();
-  final _insuranceExpiryDateController = TextEditingController();
+  final _insuranceGivenDateRuController = TextEditingController();
+  final _insuranceExpiryDateRuController = TextEditingController();
 
-  final _licenceNumberController = TextEditingController();
+  final _insuranceGivenDateKzController = TextEditingController();
+  final _insuranceExpiryDateKzController = TextEditingController();
   final _licenceGivenDateController = TextEditingController();
   final _licenceExpiryDateController = TextEditingController();
   final _inspectionGivenDateController = TextEditingController();
   final _inspectionExpiryDateController = TextEditingController();
   final _passGivenDateController = TextEditingController();
   final _passExpiryDateController = TextEditingController();
+  final _permitGivenDateController = TextEditingController();
+  final _permitExpiryDateController = TextEditingController();
   final _ownerController = TextEditingController();
 
   final FirestoreServices _firestoreServices = FirestoreServices();
@@ -57,8 +58,6 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   bool _isLoadingTrailers = true;
   bool _isLoadingDrivers = true;
   bool _isLoadingVehicle = false;
-
-  
 
   @override
   void initState() {
@@ -200,10 +199,15 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
             FirebaseFirestore.instance.collection('vehicles').doc().id;
 
         // Parse date fields from controllers
-        final insuranceGivenDate =
-            DateFormat('dd.MM.yyyy').parse(_insuranceGivenDateController.text);
-        final insuranceExpiryDate =
-            DateFormat('dd.MM.yyyy').parse(_insuranceExpiryDateController.text);
+        final insuranceGivenDateRu = DateFormat('dd.MM.yyyy')
+            .parse(_insuranceGivenDateRuController.text);
+        final insuranceExpiryDateRu = DateFormat('dd.MM.yyyy')
+            .parse(_insuranceExpiryDateRuController.text);
+
+        final insuranceGivenDateKz = DateFormat('dd.MM.yyyy')
+            .parse(_insuranceGivenDateKzController.text);
+        final insuranceExpiryDateKz = DateFormat('dd.MM.yyyy')
+            .parse(_insuranceExpiryDateKzController.text);
 
         final licenceGivenDate =
             DateFormat('dd.MM.yyyy').parse(_licenceGivenDateController.text);
@@ -220,6 +224,11 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
         final passExpiryDate =
             DateFormat('dd.MM.yyyy').parse(_passExpiryDateController.text);
 
+        final permitGivenDate =
+            DateFormat('dd.MM.yyyy').parse(_passGivenDateController.text);
+        final permitExpiryDate =
+            DateFormat('dd.MM.yyyy').parse(_passExpiryDateController.text);
+
         // Create a new Vehicle instance
         final newVehicle = Vehicle(
           id: vehicleId,
@@ -231,19 +240,24 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
           color: _selectedColor!,
           mileage: int.parse(_mileageController.text.trim()),
           vin: _vinController.text.trim(),
-          registrationCertificateNumber:
-              _registrationCertificateController.text.trim(),
-          insuranceCertificateNumber: _insuranceNumberController.text.trim(),
-          insuranceCertificateGivenDate: Timestamp.fromDate(insuranceGivenDate),
-          insuranceCertificateExpiryDate:
-              Timestamp.fromDate(insuranceExpiryDate),
-          licenceNumber: _licenceNumberController.text.trim(),
+
+          insuranceCertificateGivenDateRu:
+              Timestamp.fromDate(insuranceGivenDateRu),
+          insuranceCertificateExpiryDateRu:
+              Timestamp.fromDate(insuranceExpiryDateRu),
+
+          insuranceCertificateGivenDateKz:
+              Timestamp.fromDate(insuranceGivenDateKz),
+          insuranceCertificateExpiryDateKz:
+              Timestamp.fromDate(insuranceExpiryDateKz),
           licenceGivenDate: Timestamp.fromDate(licenceGivenDate),
           licenceExpiryDate: Timestamp.fromDate(licenceExpiryDate),
           inspectionGivenDate: Timestamp.fromDate(inspectionGivenDate),
           inspectionExpiryDate: Timestamp.fromDate(inspectionExpiryDate),
           passGivenDate: Timestamp.fromDate(passGivenDate),
           passExpiryDate: Timestamp.fromDate(passExpiryDate),
+          permitGivenDate: Timestamp.fromDate(permitGivenDate),
+          permitExpiryDate: Timestamp.fromDate(permitExpiryDate),
           trailer: _selectedTrailer!,
           driver: _selectedDriver!,
           owner: _ownerController.text.trim(),
@@ -290,17 +304,19 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
     _plateNumberController.dispose();
     _mileageController.dispose();
     _vinController.dispose();
-    _registrationCertificateController.dispose();
-    _insuranceNumberController.dispose();
-    _insuranceGivenDateController.dispose();
-    _insuranceExpiryDateController.dispose();
-    _licenceNumberController.dispose();
+    _insuranceGivenDateRuController.dispose();
+    _insuranceExpiryDateRuController.dispose();
+
+    _insuranceGivenDateKzController.dispose();
+    _insuranceExpiryDateKzController.dispose();
     _licenceGivenDateController.dispose();
     _licenceExpiryDateController.dispose();
     _inspectionGivenDateController.dispose();
     _inspectionExpiryDateController.dispose();
     _passGivenDateController.dispose();
     _passExpiryDateController.dispose();
+    _permitGivenDateController.dispose();
+    _permitExpiryDateController.dispose();
     _ownerController.dispose();
   }
 
@@ -357,25 +373,24 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                 ),
                 AppConst.smallSpace,
                 DropdownButtonFormField<String>(
-      decoration: const InputDecoration(
-        labelText: 'Цвет',
-        border: OutlineInputBorder(),
-      ),
-      value: _selectedColor,
-      items: AppConst.colorOptions.map((String color) {
-        return DropdownMenuItem<String>(
-          value: color,
-          child: Text(color),
-        );
-      }).toList(),
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedColor = newValue!;
-        });
-      },
-      validator: (value) =>
-          value == null ? 'Пожалуйста, выберите цвет' : null,
-    ),
+                  decoration: const InputDecoration(
+                    labelText: 'Цвет',
+                  ),
+                  value: _selectedColor,
+                  items: AppConst.colorOptions.map((String color) {
+                    return DropdownMenuItem<String>(
+                      value: color,
+                      child: Text(color),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedColor = newValue!;
+                    });
+                  },
+                  validator: (value) =>
+                      value == null ? 'Пожалуйста, выберите цвет' : null,
+                ),
                 AppConst.smallSpace,
                 CustomTextFormField(
                   controller: _mileageController,
@@ -403,45 +418,39 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                       value!.isEmpty ? 'Пожалуйста, введите владелца' : null,
                 ),
                 AppConst.smallSpace,
-                CustomTextFormField(
-                  controller: _registrationCertificateController,
-                  labelText: 'Номер тех.паспорта',
-                  validator: (value) => value!.isEmpty
-                      ? 'Пожалуйста, введите номер тех.паспорта'
-                      : null,
-                ),
-                AppConst.smallSpace,
-                CustomTextFormField(
-                  controller: _insuranceNumberController,
-                  labelText: 'Номер страховки',
-                  validator: (value) => value!.isEmpty
-                      ? 'Пожалуйста, введите номер страховки'
-                      : null,
-                ),
-                AppConst.smallSpace,
                 DatePickerWidget(
-                  controller: _insuranceGivenDateController,
-                  labelText: 'Дата выдачи страховки',
+                  controller: _insuranceGivenDateRuController,
+                  labelText: 'Дата выдачи страховки - Россия',
                   validator: (value) => value == null || value.isEmpty
-                      ? 'Пожалуйста, введите дату выдачи страховки'
+                      ? 'Пожалуйста, введите дату выдачи страховки - Россия'
                       : null,
                 ),
                 AppConst.smallSpace,
                 DatePickerWidget(
-                  controller: _insuranceExpiryDateController,
-                  labelText: 'Дата окончания страховки',
+                  controller: _insuranceExpiryDateRuController,
+                  labelText: 'Дата окончания страховки - Россия',
                   firstDate: firstDate,
                   lastDate: lastDate,
                   validator: (value) => value == null || value.isEmpty
-                      ? 'Пожалуйста, введите дату окончания страховки'
+                      ? 'Пожалуйста, введите дату окончания страховки - Россия'
                       : null,
                 ),
                 AppConst.smallSpace,
-                CustomTextFormField(
-                  controller: _licenceNumberController,
-                  labelText: 'Номер лицензии',
-                  validator: (value) => value!.isEmpty
-                      ? 'Пожалуйста, введите номер лицензии'
+                DatePickerWidget(
+                  controller: _insuranceGivenDateKzController,
+                  labelText: 'Дата выдачи страховки - Казакстан',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату выдачи страховки - Казакстан'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _insuranceExpiryDateKzController,
+                  labelText: 'Дата окончания страховки - Казакстан',
+                  firstDate: firstDate,
+                  lastDate: lastDate,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату окончания страховки - Казакстан'
                       : null,
                 ),
                 AppConst.smallSpace,
@@ -496,6 +505,24 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                   lastDate: lastDate,
                   validator: (value) => value == null || value.isEmpty
                       ? 'Пожалуйста, введите дату окончания тпропуска'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _permitGivenDateController,
+                  labelText: 'Дата выдачи дозвола',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату выдачи дозвола'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _permitExpiryDateController,
+                  labelText: 'Дата окончания дозвола',
+                  firstDate: firstDate,
+                  lastDate: lastDate,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату окончания дозвола'
                       : null,
                 ),
                 AppConst.smallSpace,

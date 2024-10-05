@@ -7,7 +7,11 @@ class Driver {
   final String name;
   final String surname;
   final String? patronymic;
+  final Timestamp birthDate;
+  final String gender;
   final String idNumber;
+  final Timestamp patentGivenDate;
+  final Timestamp patentExpiryDate;
   final String phoneNumber;
   final List<String>? imageUrls;
 
@@ -18,6 +22,10 @@ class Driver {
     required this.name,
     required this.surname,
     this.patronymic,
+    required this.birthDate,
+    required this.gender,
+    required this.patentGivenDate,
+    required this.patentExpiryDate,
     required this.idNumber,
     required this.phoneNumber,
     this.imageUrls,
@@ -32,6 +40,10 @@ class Driver {
       'name': name,
       'surname': surname,
       'patronymic': patronymic,
+      'birthDate': birthDate,
+      'gender': gender,
+      'patentGivenDate': patentGivenDate,
+      'patentExpiryDate': patentExpiryDate,
       'idNumber': idNumber,
       'phoneNumber': phoneNumber,
       'imageUrls': imageUrls,
@@ -47,6 +59,10 @@ class Driver {
       name: map['name'] as String,
       surname: map['surname'] as String,
       patronymic: map['patronymic'] as String?,
+      birthDate: map['birthDate'] as Timestamp,
+      gender: map['gender'] as String,
+      patentGivenDate: map['patentGivenDate'] as Timestamp,
+      patentExpiryDate: map['patentExpiryDate'] as Timestamp,
       idNumber: map['idNumber'] as String,
       phoneNumber: map['phoneNumber'] as String,
       imageUrls: List<String>.from(map['imageUrls'] ?? []),
@@ -64,6 +80,10 @@ class Driver {
     String? idNumber,
     String? phoneNumber,
     List<String>? imageUrls,
+    Timestamp? birthDate,
+    String? gender,
+    required Timestamp patentGivenDate,
+    required Timestamp patentExpiryDate,
   }) {
     return Driver(
       id: id ?? this.id,
@@ -72,6 +92,10 @@ class Driver {
       name: name ?? this.name,
       surname: surname ?? this.surname,
       patronymic: patronymic ?? this.patronymic,
+      birthDate: birthDate ?? this.birthDate,
+      gender: gender ?? this.gender,
+      patentGivenDate: patentGivenDate,
+      patentExpiryDate: patentExpiryDate,
       idNumber: idNumber ?? this.idNumber,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       imageUrls: imageUrls ?? this.imageUrls,

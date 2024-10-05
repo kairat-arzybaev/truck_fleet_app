@@ -26,7 +26,7 @@ class TrailerListPage extends StatelessWidget {
             title: Text('${trailer.maker} ${trailer.model}'),
             subtitle: Text('Гос. номер: ${trailer.plateNumber}'),
             trailing: const Icon(Icons.chevron_right),
-            tileColor: Colors.deepOrange,
+            tileColor: Colors.orange,
             onTap: () {
               Navigator.push(
                 context,
