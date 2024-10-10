@@ -6,6 +6,7 @@ enum TrailerType {
   tarpaulin, // Тентованные
   specialized, // Специальные
   refrigerator, // Рефрижератор
+  tandem, // Тандем
 }
 
 const Map<TrailerType, String> trailerTypeDisplayNames = {
@@ -14,6 +15,7 @@ const Map<TrailerType, String> trailerTypeDisplayNames = {
   TrailerType.tarpaulin: 'Полуприцеп тентованный',
   TrailerType.specialized: 'Специальный',
   TrailerType.refrigerator: 'Рефрижератор',
+  TrailerType.tandem: 'Тандем',
 };
 
 extension TrailerTypeExtension on TrailerType {

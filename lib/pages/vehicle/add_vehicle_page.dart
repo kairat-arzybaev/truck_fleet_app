@@ -31,6 +31,8 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   final _engineCapacityController = TextEditingController();
   final _mileageController = TextEditingController();
   final _vinController = TextEditingController();
+  final _osagoGivenDateController = TextEditingController();
+  final _osagoExpiryDateController = TextEditingController();
   final _insuranceGivenDateRuController = TextEditingController();
   final _insuranceExpiryDateRuController = TextEditingController();
 
@@ -228,6 +230,10 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
             DateFormat('dd.MM.yyyy').parse(_passGivenDateController.text);
         final permitExpiryDate =
             DateFormat('dd.MM.yyyy').parse(_passExpiryDateController.text);
+        final osagoGivenDate =
+            DateFormat('dd.MM.yyyy').parse(_passGivenDateController.text);
+        final osagoExpiryDate =
+            DateFormat('dd.MM.yyyy').parse(_passExpiryDateController.text);
 
         // Create a new Vehicle instance
         final newVehicle = Vehicle(
@@ -240,7 +246,8 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
           color: _selectedColor!,
           mileage: int.parse(_mileageController.text.trim()),
           vin: _vinController.text.trim(),
-
+          osagoGivenDate: Timestamp.fromDate(osagoGivenDate),
+          osagoExpiryDate: Timestamp.fromDate(osagoExpiryDate),
           insuranceCertificateGivenDateRu:
               Timestamp.fromDate(insuranceGivenDateRu),
           insuranceCertificateExpiryDateRu:
@@ -304,6 +311,8 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
     _plateNumberController.dispose();
     _mileageController.dispose();
     _vinController.dispose();
+    _osagoGivenDateController.dispose();
+    _osagoExpiryDateController.dispose();
     _insuranceGivenDateRuController.dispose();
     _insuranceExpiryDateRuController.dispose();
 
@@ -416,6 +425,24 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                   textCapitalization: TextCapitalization.words,
                   validator: (value) =>
                       value!.isEmpty ? 'Пожалуйста, введите владелца' : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _osagoGivenDateController,
+                  labelText: 'Дата выдачи ОСАГО',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату выдачи ОСАГО'
+                      : null,
+                ),
+                AppConst.smallSpace,
+                DatePickerWidget(
+                  controller: _osagoExpiryDateController,
+                  labelText: 'Дата окончания ОСАГО',
+                  firstDate: firstDate,
+                  lastDate: lastDate,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Пожалуйста, введите дату окончания ОСАГО'
+                      : null,
                 ),
                 AppConst.smallSpace,
                 DatePickerWidget(

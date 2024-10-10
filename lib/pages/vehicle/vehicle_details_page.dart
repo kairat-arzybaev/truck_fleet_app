@@ -103,7 +103,15 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
               _buildDetailRow('Цвет', widget.vehicle.color),
               _buildDetailRow('Пробег', widget.vehicle.mileage.toString()),
               _buildDetailRow('VIN', widget.vehicle.vin),
-
+              _buildDetailRow('Владелец', widget.vehicle.owner),
+              _buildDetailRow(
+                'Дата выдачи ОСАГО',
+                dateFormatter.format(widget.vehicle.osagoGivenDate.toDate()),
+              ),
+              _buildDetailRow(
+                'Дата окончания ОСАГО',
+                dateFormatter.format(widget.vehicle.osagoExpiryDate.toDate()),
+              ),
               _buildDetailRow(
                 'Дата выдачи страховки-RU',
                 dateFormatter.format(
@@ -159,7 +167,6 @@ class _VehicleDetailsPageState extends State<VehicleDetailsPage> {
                 'Дата окончания дозвола',
                 dateFormatter.format(widget.vehicle.permitExpiryDate.toDate()),
               ),
-              _buildDetailRow('Владелец', widget.vehicle.owner),
 
               // Trailer Information
               AppConst.mediumSpace,

@@ -12,6 +12,8 @@ class Vehicle {
   final String color;
   final int mileage;
   final String vin;
+  final Timestamp osagoGivenDate;
+  final Timestamp osagoExpiryDate;
   final Timestamp insuranceCertificateGivenDateRu;
   final Timestamp insuranceCertificateExpiryDateRu;
   final Timestamp insuranceCertificateGivenDateKz;
@@ -42,6 +44,8 @@ class Vehicle {
     required this.color,
     required this.mileage,
     required this.vin,
+    required this.osagoGivenDate,
+    required this.osagoExpiryDate,
     required this.insuranceCertificateGivenDateRu,
     required this.insuranceCertificateExpiryDateRu,
     required this.insuranceCertificateGivenDateKz,
@@ -74,6 +78,8 @@ class Vehicle {
       'color': color,
       'mileage': mileage,
       'vin': vin,
+      'osagoGivenDate': osagoGivenDate,
+      'osagoExpiryDate': osagoExpiryDate,
       'insuranceCertificateGivenDateRu': insuranceCertificateGivenDateRu,
       'insuranceCertificateExpiryDateRu': insuranceCertificateExpiryDateRu,
       'insuranceCertificateGivenDateKz': insuranceCertificateGivenDateKz,
@@ -109,6 +115,8 @@ class Vehicle {
       color: map['color'] as String,
       mileage: map['mileage'] as int,
       vin: map['vin'] as String,
+      osagoGivenDate: map['osagoGivenDate'] as Timestamp,
+      osagoExpiryDate: map['osagoExpiryDate'] as Timestamp,
       insuranceCertificateGivenDateRu:
           map['insuranceCertificateGivenDateRu'] as Timestamp,
       insuranceCertificateExpiryDateRu:
@@ -145,6 +153,8 @@ class Vehicle {
     String? color,
     int? mileage,
     String? vin,
+    Timestamp? osagoGivenDate,
+    Timestamp? osagoExpiryDate,
     Timestamp? insuranceCertificateGivenDateRu,
     Timestamp? insuranceCertificateExpiryDateRu,
     String? insuranceCertificateNumberKz,
@@ -175,6 +185,8 @@ class Vehicle {
       color: color ?? this.color,
       mileage: mileage ?? this.mileage,
       vin: vin ?? this.vin,
+      osagoGivenDate: osagoGivenDate ?? this.osagoGivenDate,
+      osagoExpiryDate: osagoExpiryDate ?? this.osagoExpiryDate,
       insuranceCertificateGivenDateRu: insuranceCertificateGivenDateRu ??
           this.insuranceCertificateGivenDateRu,
       insuranceCertificateExpiryDateRu: insuranceCertificateExpiryDateRu ??

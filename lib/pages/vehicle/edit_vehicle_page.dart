@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:truck_fleet_app/services/image_services.dart';
@@ -38,6 +39,8 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
   late TextEditingController _engineCapacityController;
   late TextEditingController _mileageController;
   late TextEditingController _vinController;
+  late TextEditingController _osagoGivenDateController;
+  late TextEditingController _osagoExpiryDateController;
   late TextEditingController _insuranceGivenDateRuController;
   late TextEditingController _insuranceExpiryDateRuController;
 
@@ -86,7 +89,12 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
     _mileageController =
         TextEditingController(text: vehicle.mileage.toString());
     _vinController = TextEditingController(text: vehicle.vin);
-
+    _osagoGivenDateController = TextEditingController(
+      text: DateFormat('dd.MM.yyyy').format(vehicle.osagoGivenDate.toDate()),
+    );
+    _osagoExpiryDateController = TextEditingController(
+      text: DateFormat('dd.MM.yyyy').format(vehicle.osagoExpiryDate.toDate()),
+    );
     _insuranceGivenDateRuController = TextEditingController(
       text: DateFormat('dd.MM.yyyy')
           .format(vehicle.insuranceCertificateGivenDateRu.toDate()),
@@ -227,11 +235,10 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
             DateFormat('dd.MM.yyyy').parse(_passGivenDateController.text);
         final passExpiryDate =
             DateFormat('dd.MM.yyyy').parse(_passExpiryDateController.text);
-            final permitGivenDate =
+        final permitGivenDate =
             DateFormat('dd.MM.yyyy').parse(_permitGivenDateController.text);
         final permitExpiryDate =
             DateFormat('dd.MM.yyyy').parse(_permitExpiryDateController.text);
-
 
         // Create updated Vehicle object
         final updatedVehicle = widget.vehicle.copyWith(
@@ -243,12 +250,10 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
           color: _selectedColor,
           mileage: int.parse(_mileageController.text.trim()),
           vin: _vinController.text.trim(),
-          
           insuranceCertificateGivenDateRu:
               Timestamp.fromDate(insuranceGivenDateRu),
           insuranceCertificateExpiryDateRu:
               Timestamp.fromDate(insuranceExpiryDateRu),
-         
           insuranceCertificateGivenDateKz:
               Timestamp.fromDate(insuranceGivenDateKz),
           insuranceCertificateExpiryDateKz:
@@ -403,6 +408,38 @@ class _EditVehiclePageState extends State<EditVehiclePage> {
                     CustomTextFormField(
                       controller: _vinController,
                       labelText: 'VIN',
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9-]')),
+                      ],
+                      validator: (value) =>
+                          value!.isEmpty ? 'Пожалуйста, введите VIN' : null,
+                    ),
+                    AppConst.smallSpace,
+                    CustomTextFormField(
+                      controller: _ownerController,
+                      labelText: 'Владелец',
+                      textCapitalization: TextCapitalization.words,
+                      validator: (value) => value!.isEmpty
+                          ? 'Пожалуйста, введите владелца'
+                          : null,
+                    ),
+                    AppConst.smallSpace,
+                    DatePickerWidget(
+                      controller: _osagoGivenDateController,
+                      labelText: 'Дата выдачи ОСАГО',
+                      validator: (value) => value!.isEmpty
+                          ? 'Пожалуйста, введите дату выдачи ОСАГО'
+                          : null,
+                    ),
+                    AppConst.smallSpace,
+                    DatePickerWidget(
+                      controller: _osagoExpiryDateController,
+                      labelText: 'Дата окончания ОСАГО',
+                      firstDate: firstDate,
+                      lastDate: lastDate,
+                      validator: (value) => value!.isEmpty
+                          ? 'Пожалуйста, введите дату окончания ОСАГО'
+                          : null,
                     ),
                     AppConst.smallSpace,
                     DatePickerWidget(
